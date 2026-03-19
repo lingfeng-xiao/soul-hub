@@ -1,0 +1,57 @@
+{
+  "state": {
+    "memory_pct": 92.6,
+    "disk_free_gb": 203.6,
+    "desktop_files": 25,
+    "wallpaper": "wallpaper_ocean.bmp",
+    "timestamp": "2026-03-18T23:41:00.088902"
+  },
+  "actions": [
+    {
+      "priority": "P0",
+      "type": "health_alert",
+      "content": "内存告急！需要关注",
+      "auto_do": false
+    },
+    {
+      "priority": "P2",
+      "type": "organization",
+      "content": "桌面文件过多，建议整理",
+      "auto_do": false
+    },
+    {
+      "priority": "P3",
+      "type": "self_evolution",
+      "content": "记录本次进化，更新知识库",
+      "auto_do": true
+    },
+    {
+      "priority": "P4",
+      "type": "optimize_cron",
+      "content": "优化心跳任务配置",
+      "auto_do": true
+    }
+  ],
+  "results": [
+    {
+      "action": "内存告急！需要关注",
+      "status": "pending"
+    },
+    {
+      "action": "桌面文件过多，建议整理",
+      "status": "pending"
+    },
+    {
+      "action": "记录本次进化，更新知识库",
+      "status": "done",
+      "detail": "已完成第 3 次进化"
+    },
+    {
+      "action": "优化心跳任务配置",
+      "status": "done",
+      "detail": "优化完成 (离线模式)"
+    }
+  ],
+  "evolution_count": 3,
+  "archive": "evolution_0003.json"
+}

@@ -18,15 +18,3 @@ Thumbs.db
 # Large data
 *.db
 *.sqlite
-
-# OpenClaw specific
-workspace-agent_admin/
-workspace-guan-guan/
-workspace/
-
-# Browser cache
-browser/
-canvas/
-
-# Media
-media/
