@@ -1,0 +1,337 @@
+{
+  "meta": {
+    "lastTouchedVersion": "2026.3.13",
+    "lastTouchedAt": "2026-03-18T16:21:27.154Z"
+  },
+  "browser": {
+    "enabled": true,
+    "defaultProfile": "openclaw"
+  },
+  "models": {
+    "providers": {
+      "minimax-portal": {
+        "baseUrl": "https://api.minimaxi.com/anthropic",
+        "apiKey": "MINIMAX_CN_API_KEY",
+        "api": "anthropic-messages",
+        "models": [
+          {
+            "id": "MiniMax-M2.5",
+            "name": "MiniMax-M2.5"
+          }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "minimax-portal/MiniMax-M2.5",
+        "fallbacks": []
+      },
+      "compaction": {
+        "mode": "safeguard"
+      }
+    },
+    "list": [
+      {
+        "id": "main",
+        "default": true,
+        "name": "Main Agent",
+        "workspace": "C:\\\\Users\\\\16343\\\\.openclaw\\\\workspace",
+        "subagents": {
+          "allowAgents": [
+            "guan-guan",
+            "xiao-yi",
+            "mian-xiao-zhu",
+            "hou-zu"
+          ]
+        }
+      },
+      {
+        "id": "xiao-yi",
+        "name": "小艺（电脑管家）",
+        "workspace": "C:\\\\Users\\\\16343\\\\.openclaw\\\\agents\\\\xiao-yi\\\\workspace",
+        "agentDir": "C:\\\\Users\\\\16343\\\\.openclaw\\\\agents\\\\xiao-yi",
+        "identity": {
+          "name": "小艺（电脑管家）",
+          "theme": "creative",
+          "emoji": "🎨"
+        }
+      },
+      {
+        "id": "mian-xiao-zhu",
+        "name": "面小助（面试辅导）",
+        "workspace": "C:\\\\Users\\\\16343\\\\.openclaw\\\\agents\\\\mian-xiao-zhu\\\\workspace",
+        "agentDir": "C:\\\\Users\\\\16343\\\\.openclaw\\\\agents\\\\mian-xiao-zhu",
+        "identity": {
+          "name": "面小助（面试辅导）",
+          "theme": "professional",
+          "emoji": "🧑‍💼"
+        }
+      },
+      {
+        "id": "guan-guan",
+        "name": "管管（管理员）",
+        "workspace": "C:\\\\Users\\\\16343\\\\.openclaw\\\\agents\\\\guan-guan\\\\workspace",
+        "agentDir": "C:\\\\Users\\\\16343\\\\.openclaw\\\\agents\\\\guan-guan",
+        "identity": {
+          "name": "管管（管理员）",
+          "theme": "professional",
+          "emoji": "🛡️",
+          "avatar": ""
+        },
+        "subagents": {
+          "allowAgents": [
+            "xiao-yi",
+            "mian-xiao-zhu",
+            "hou-zu"
+          ]
+        }
+      },
+      {
+        "id": "hou-zu",
+        "name": "后助（后端开发）",
+        "workspace": "C:\\\\Users\\\\16343\\\\.openclaw\\\\agents\\\\hou-zu\\\\workspace",
+        "agentDir": "C:\\\\Users\\\\16343\\\\.openclaw\\\\agents\\\\hou-zu",
+        "identity": {
+          "name": "后助（后端开发）",
+          "theme": "professional",
+          "emoji": "💻"
+        }
+      }
+    ]
+  },
+  "tools": {
+    "profile": "full",
+    "sessions": {
+      "visibility": "all"
+    }
+  },
+  "bindings": [
+    {
+      "agentId": "guan-guan",
+      "match": {
+        "channel": "feishu",
+        "accountId": "guan-guan"
+      }
+    },
+    {
+      "agentId": "mian-xiao-zhu",
+      "match": {
+        "channel": "feishu",
+        "accountId": "mian-xiao-zhu"
+      }
+    },
+    {
+      "agentId": "xiao-yi",
+      "match": {
+        "channel": "feishu",
+        "accountId": "xiao-yi"
+      }
+    }
+  ],
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto",
+    "restart": true,
+    "ownerDisplay": "raw"
+  },
+  "hooks": {
+    "internal": {
+      "enabled": true,
+      "entries": {
+        "session-memory": {
+          "enabled": true
+        }
+      }
+    }
+  },
+  "channels": {
+    "feishu": {
+      "accounts": {
+        "default": {
+          "enabled": true,
+          "routing": {
+            "rules": [
+              {
+                "name": "后助（后端开发）",
+                "agent": "hou-zu",
+                "when": {
+                  "message.contains": [
+                    "后端",
+                    "代码",
+                    "开发",
+                    "后助",
+                    "API",
+                    "数据库",
+                    "服务",
+                    "后端开发"
+                  ]
+                }
+              },
+              {
+                "name": "面小助（面试辅导）",
+                "agent": "mian-xiao-zhu",
+                "when": {
+                  "message.contains": [
+                    "面试",
+                    "简历",
+                    "找工作",
+                    "招聘",
+                    "面小助"
+                  ]
+                }
+              },
+              {
+                "name": "小艺（电脑管家）",
+                "agent": "xiao-yi",
+                "when": {
+                  "message.contains": [
+                    "小艺",
+                    "UI设计师",
+                    "电脑管家",
+                    "设计师电脑"
+                  ]
+                }
+              },
+              {
+                "name": "管管（管理员）",
+                "agent": "guan-guan",
+                "when": {
+                  "message.contains": [
+                    "管管",
+                    "创建agent",
+                    "管理agent"
+                  ]
+                }
+              }
+            ]
+          },
+          "appSecret": "BuiBhsfVCUVMCjqVeSRl0eQm4EUy1Ecy",
+          "appId": "cli_a93d1562f3f85cce",
+          "dmPolicy": "open",
+          "allowFrom": [
+            "*"
+          ]
+        },
+        "guan-guan": {
+          "appId": "cli_a93394553779dcb3",
+          "appSecret": "nflBxaHk4P9tyg0THewnxh1lpwrARseE",
+          "dmPolicy": "open",
+          "allowFrom": [
+            "*"
+          ],
+          "enabled": true
+        },
+        "mian-xiao-zhu": {
+          "appId": "cli_a93395b308791cee",
+          "appSecret": "ruFl9qZwzwYEGDJwZ7Gq4dTNRO0DXCdY",
+          "dmPolicy": "open",
+          "allowFrom": [
+            "*"
+          ],
+          "enabled": true
+        },
+        "xiao-yi": {
+          "appId": "cli_a933990529f89ceb",
+          "appSecret": "rnkofIQb5ofraILMul50CbdfvwMzowe0",
+          "dmPolicy": "open",
+          "allowFrom": [
+            "*"
+          ],
+          "enabled": true
+        }
+      },
+      "defaultAccount": "default",
+      "enabled": true,
+      "routing": {
+        "rules": [
+          {
+            "name": "后助（后端开发）",
+            "agent": "hou-zu",
+            "when": {
+              "message.contains": [
+                "后端",
+                "代码",
+                "开发",
+                "后助",
+                "API",
+                "数据库",
+                "服务"
+              ]
+            }
+          },
+          {
+            "name": "面小助（面试辅导）",
+            "agent": "mian-xiao-zhu",
+            "when": {
+              "message.contains": [
+                "面试",
+                "简历",
+                "找工作",
+                "招聘",
+                "面小助"
+              ]
+            }
+          },
+          {
+            "name": "小艺（电脑管家）",
+            "agent": "xiao-yi",
+            "when": {
+              "message.contains": [
+                "小艺",
+                "UI设计师",
+                "电脑管家",
+                "设计师电脑"
+              ]
+            }
+          },
+          {
+            "name": "管管（管理员）",
+            "agent": "guan-guan",
+            "when": {
+              "message.contains": [
+                "管管",
+                "创建agent",
+                "管理agent"
+              ]
+            }
+          }
+        ]
+      },
+      "appSecret": "BuiBhsfVCUVMCjqVeSRl0eQm4EUy1Ecy",
+      "appId": "cli_a93d1562f3f85cce",
+      "dmPolicy": "open",
+      "allowFrom": [
+        "*"
+      ]
+    }
+  },
+  "gateway": {
+    "mode": "local",
+    "controlUi": {
+      "allowedOrigins": [
+        "file://"
+      ]
+    },
+    "auth": {
+      "mode": "token",
+      "token": "clawx-dcccac419b2580ddfa3dba51f361bb39"
+    }
+  },
+  "plugins": {
+    "enabled": true,
+    "allow": [
+      "openclaw-lark",
+      "minimax-portal-auth"
+    ],
+    "entries": {
+      "openclaw-lark": {
+        "enabled": true
+      },
+      "minimax-portal-auth": {
+        "enabled": true
+      }
+    }
+  }
+}

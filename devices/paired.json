@@ -1,0 +1,109 @@
+{
+  "4a4459bc196b25cd6b6b641f902da659cd4ff71edc1b1d8fe3c1604e3b35c0fd": {
+    "deviceId": "4a4459bc196b25cd6b6b641f902da659cd4ff71edc1b1d8fe3c1604e3b35c0fd",
+    "publicKey": "TDqq0t7F6hKRefE6gWcgAROv8vKO6akeKI4Ssh0nS6w",
+    "displayName": "ClawX",
+    "platform": "win32",
+    "clientId": "gateway-client",
+    "clientMode": "ui",
+    "role": "operator",
+    "roles": [
+      "operator"
+    ],
+    "scopes": [
+      "operator.admin"
+    ],
+    "approvedScopes": [
+      "operator.admin"
+    ],
+    "tokens": {
+      "operator": {
+        "token": "a8Cv-XrktczW83NkHYIIaCwauVCEDI3enzaH5M9kspc",
+        "role": "operator",
+        "scopes": [
+          "operator.admin"
+        ],
+        "createdAtMs": 1773578325715
+      }
+    },
+    "createdAtMs": 1773578325715,
+    "approvedAtMs": 1773578325715
+  },
+  "af7ff7e7bd4ed201c521caa7d0f950745b2defb098c13f8b74365efcd46f287f": {
+    "deviceId": "af7ff7e7bd4ed201c521caa7d0f950745b2defb098c13f8b74365efcd46f287f",
+    "publicKey": "2wraBx3ECfDfIctEL1peRaMYZiZuqQ-5xzsUlCE-bHU",
+    "platform": "Win32",
+    "clientId": "openclaw-control-ui",
+    "clientMode": "webchat",
+    "role": "operator",
+    "roles": [
+      "operator"
+    ],
+    "scopes": [
+      "operator.admin",
+      "operator.approvals",
+      "operator.pairing"
+    ],
+    "approvedScopes": [
+      "operator.admin",
+      "operator.approvals",
+      "operator.pairing"
+    ],
+    "tokens": {
+      "operator": {
+        "token": "LDA2li1wCMN_6TihEA44hR9U-h9QdYpzzXD1b-1m2D0",
+        "role": "operator",
+        "scopes": [
+          "operator.admin",
+          "operator.approvals",
+          "operator.pairing"
+        ],
+        "createdAtMs": 1773578514676,
+        "lastUsedAtMs": 1773920270894
+      }
+    },
+    "createdAtMs": 1773578514676,
+    "approvedAtMs": 1773578514676
+  },
+  "5848d4c6f7e33a11013be55fa13d546d8bad4e80ffe34b0ae9dd800cd00629c1": {
+    "deviceId": "5848d4c6f7e33a11013be55fa13d546d8bad4e80ffe34b0ae9dd800cd00629c1",
+    "publicKey": "GTrCnPAhtZTu5XmLJUsGERKxUUI1g-vKWxdZJamx0KI",
+    "platform": "win32",
+    "clientId": "cli",
+    "clientMode": "cli",
+    "role": "operator",
+    "roles": [
+      "operator"
+    ],
+    "scopes": [
+      "operator.admin",
+      "operator.read",
+      "operator.write",
+      "operator.approvals",
+      "operator.pairing"
+    ],
+    "approvedScopes": [
+      "operator.admin",
+      "operator.read",
+      "operator.write",
+      "operator.approvals",
+      "operator.pairing"
+    ],
+    "tokens": {
+      "operator": {
+        "token": "4Nr5Pz4-gxBBoAn_-tvMuWxO91NIuXDIIn4HO2Z4Qsk",
+        "role": "operator",
+        "scopes": [
+          "operator.admin",
+          "operator.approvals",
+          "operator.pairing",
+          "operator.read",
+          "operator.write"
+        ],
+        "createdAtMs": 1773741702518
+      }
+    },
+    "createdAtMs": 1773741702518,
+    "approvedAtMs": 1773741702518
+  }
+}

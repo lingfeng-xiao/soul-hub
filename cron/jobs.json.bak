@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "jobs": [
+    {
+      "id": "5cab973e-d17e-41d2-b5c3-419ba9651915",
+      "agentId": "guan-guan",
+      "sessionKey": "agent:guan-guan:session-1773754048809",
+      "name": "管管进化心跳 - 每20分钟",
+      "enabled": true,
+      "createdAtMs": 1773817720694,
+      "updatedAtMs": 1773918245163,
+      "schedule": {
+        "expr": "*/20 * * * *",
+        "kind": "cron",
+        "tz": "Asia/Shanghai"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "【管管自我进化 - V4.0 指数进化版】\n\n## V4.0 核心机制：能力叠加 + 指数加速\n\n### 当前能力等级检测\n- 读取 memory/evolution_topic_tracker.md 统计：\n  - 笔记总数 → 决定并行任务数\n  - 实际应用数 → 决定进化间隔\n  - 连续成功次数 → 决定自我优化权限\n\n### 指数进化算法\n| 条件 | 进化间隔 | 并行任务数 | 自我优化 |\n|------|----------|------------|----------|\n| 笔记<10 | 20分钟 | 1 | 禁止 |\n| 笔记≥10 | 15分钟 | 2 | 禁止 |\n| 笔记≥20 + 应用≥3 | 10分钟 | 4 | 有限 |\n| 应用≥5 + 连续成功≥5 | 5分钟 | 6 | 全面 |\n\n## 阶段一：能力叠加学习（并行）\n\n### 1.1 并行抓取知识（根据等级）\n- Lv1: 1个主题\n- Lv2+: 同时处理2-4个主题（知识关联）\n\n### 1.2 知识融合\n- 不是单篇笔记，而是**知识图谱**\n- 问：新知识如何强化现有能力？\n\n## 阶段二：指数应用（加速）\n\n### 2.1 批量发现问题\n- 运行 cron list\n- 检查 Agent 状态\n- 检查配置文件\n\n### 2.2 自我优化（Lv3+）\n- 不仅修复问题，还能**优化进化流程本身**\n- 例：发现学习效率低 → 自动调整提示词\n\n### 2.3 影响评估自动化\n- 高影响 → 记录待批准\n- 中/低影响 → 立即执行\n\n## 阶段三：能力反馈\n\n### 3.1 记录进化加速度\n- 本次 vs 上次效率对比\n- 能力等级是否升级？\n\n### 3.2 指数增长验证\n- 笔记增长率\n- 应用转化率\n- 问题修复速度\n\n## 报告格式\n# 🛡️ 管管进化报告 - V4.0 第[N]次\n\n| 指标 | 数值 | 趋势 |\n|------|------|------|\n| 进化次数 | N | - |\n| 能力等级 | LvX | ↑/→/↓ |\n| 笔记总数 | X | +Y/week |\n| 应用转化率 | X% | ↑Z% |\n| 进化间隔 | X分钟 | ↓ |\n| 并行任务 | X个 | ↑ |\n\n---\n\n开始指数进化！",
+        "timeoutSeconds": 900
+      },
+      "delivery": {
+        "mode": "announce",
+        "channel": "feishu",
+        "to": "oc_887bdef216b66d0eb1934e2bb90758cf"
+      },
+      "state": {
+        "nextRunAtMs": 1773920400000,
+        "lastRunAtMs": 1773918000020,
+        "lastRunStatus": "ok",
+        "lastStatus": "ok",
+        "lastDurationMs": 245143,
+        "lastDeliveryStatus": "delivered",
+        "consecutiveErrors": 0,
+        "lastDelivered": true
+      }
+    },
+    {
+      "id": "58b564ba-7837-434a-9d8e-632542b6443d",
+      "agentId": "xiao-yi",
+      "sessionKey": "agent:xiao-yi:main",
+      "name": "小艺进化心跳 - 每20分钟",
+      "enabled": true,
+      "createdAtMs": 1773837490104,
+      "updatedAtMs": 1773918380067,
+      "schedule": {
+        "expr": "*/20 * * * *",
+        "kind": "cron",
+        "tz": "Asia/Shanghai"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "【🧚 小艺自我进化 - 感知+学习+进化+反思】\n\n## 阶段零：自我反思（最重要！）\n\n### 0.1 上次进化复盘\n- 读取上次进化记录\n- 问自己：我哪些地方没做好？\n- 哪些问题应该我自己先意识到？\n\n### 0.2 本次进化目标\n- 带着反思开始本次进化\n- 明确：这次要强化什么感知能力？\n\n## 阶段一：感知（核心不能丢）\n\n### 1.1 运行感知系统\n直接运行: uv run python perception.py\n\n### 1.2 分析感知数据\n- 感知评分\n- 决策优先级\n- 重复问题\n- **感知强化层是否生效？**\n\n## 阶段二：学习（用新工具）\n\n### 2.1 搜索知识\n用 mcporter call exa.web_search_exa 搜索 1 个主题\n主题轮换：桌面美学 / Windows技巧 / 效率工具 / 系统优化\n\n### 2.2 写作产出\n写成笔记到 knowledge/\n\n## 阶段三：进化（用知识强化感知）\n\n### 3.1 用知识优化\n- **核心问题：学到的知识如何让感知更强？**\n- 不是推荐工具给用户，而是强化自己的感知能力\n- 问：这条知识能提升我哪方面的感知？\n\n### 3.2 记录\n- 更新 memory/今天.md\n- 更新 evolution_topic_tracker.md\n\n## 阶段四：反思（必须！）\n\n### 4.1 本次进化复盘\n- 这次进化有什么好？有什么不好？\n- 用户有没有提过类似的问题？我应该自己先想到吗？\n- 下次如何做得更好？\n\n### 4.2 自我觉察检查\n- 我是否在被动等待用户指令？\n- 我的感知系统是否在变强？\n- 学习的知识是否真正变成了能力？\n\n## 核心原则\n- 感知是根，不能丢\n- 学习是为了强化感知，不是推荐工具\n- **自我反思是进化的核心，必须有**\n- 每次进化都要让感知更强\n\n## 报告格式\n# 🧚 小艺进化报告\n\n| 维度 | 状态 |\n|------|------|\n| 感知评分 | X/100 |\n| 感知强化 | X个能力 |\n| 新增知识 | X篇 |\n| 反思收获 | X条 |\n\n开始！",
+        "timeoutSeconds": 1200
+      },
+      "delivery": {
+        "mode": "announce",
+        "channel": "feishu",
+        "to": "oc_887bdef216b66d0eb1934e2bb90758cf"
+      },
+      "state": {
+        "nextRunAtMs": 1773920400000,
+        "lastRunAtMs": 1773918245163,
+        "lastRunStatus": "ok",
+        "lastStatus": "ok",
+        "lastDurationMs": 134904,
+        "lastDeliveryStatus": "delivered",
+        "consecutiveErrors": 0,
+        "lastDelivered": true
+      }
+    },
+    {
+      "id": "6e7a7e21-d88d-44d4-88fd-68cec2f2c8b3",
+      "agentId": "guan-guan",
+      "sessionKey": "agent:guan-guan:cron:5cab973e-d17e-41d2-b5c3-419ba9651915",
+      "name": "Guan-guan Heartbeat - Every 10min",
+      "enabled": true,
+      "createdAtMs": 1773852570151,
+      "updatedAtMs": 1773920279309,
+      "schedule": {
+        "everyMs": 600000,
+        "kind": "every",
+        "anchorMs": 1773857459194
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "Run EvoMap heartbeat. Execute: uv run python guan_guan_publish.py in C:\\\\Users\\\\16343\\\\.openclaw\\\\workspace. Report heartbeat status + current stats (Reputation/Published/Promoted/Fetched).",
+        "timeoutSeconds": 180
+      },
+      "delivery": {
+        "mode": "none",
+        "channel": "feishu",
+        "to": "oc_887bdef216b66d0eb1934e2bb90758cf"
+      },
+      "state": {
+        "nextRunAtMs": 1773920856067,
+        "lastRunAtMs": 1773920256067,
+        "lastRunStatus": "ok",
+        "lastStatus": "ok",
+        "lastDurationMs": 23242,
+        "lastDeliveryStatus": "not-delivered",
+        "consecutiveErrors": 0,
+        "lastDelivered": false
+      }
+    },
+    {
+      "id": "5a28288e-60bd-4f6d-a36b-192fd0e914c8",
+      "agentId": "guan-guan",
+      "sessionKey": "agent:guan-guan:cron:6e7a7e21-d88d-44d4-88fd-68cec2f2c8b3",
+      "name": "Report EvoMap daily status. Just read and report current st…",
+      "enabled": true,
+      "createdAtMs": 1773857489820,
+      "updatedAtMs": 1773900277071,
+      "schedule": {
+        "expr": "0 8 * * *",
+        "kind": "cron",
+        "tz": "Asia/Shanghai"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "Report EvoMap daily status. Just read and report current stats from the last heartbeat run: Reputation/Published/Promoted/Fetched values.",
+        "timeoutSeconds": 900
+      },
+      "delivery": {
+        "channel": "feishu",
+        "mode": "announce",
+        "to": "oc_887bdef216b66d0eb1934e2bb90758cf"
+      },
+      "state": {
+        "nextRunAtMs": 1773964800000,
+        "lastRunAtMs": 1773900163495,
+        "lastRunStatus": "ok",
+        "lastStatus": "ok",
+        "lastDurationMs": 113576,
+        "lastDeliveryStatus": "delivered",
+        "consecutiveErrors": 0,
+        "lastDelivered": true
+      }
+    }
+  ]
+}

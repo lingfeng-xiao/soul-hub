@@ -1,0 +1,26 @@
+# OpenClaw Sandbox Image
+# Based on Debian Bookworm Slim
+FROM debian:bookworm-slim
+
+# Install basic tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    git \
+    jq \
+    procps \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create workspace directory
+RUN mkdir -p /workspace && chmod 777 /workspace
+
+# Create non-root user
+RUN useradd -m -u 1000 -s /bin/bash sandbox
+
+WORKDIR /workspace
+
+# Default to sandbox user
+USER sandbox
+
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
