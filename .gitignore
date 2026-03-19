@@ -18,3 +18,14 @@ Thumbs.db
 # Large data
 *.db
 *.sqlite
+
+# Session 文件（每次对话生成）
+agents/*/sessions/*.jsonl
+agents/*/sessions/*.jsonl.lock
+
+# Cron 运行日志
+cron/runs/
+
+# 临时文件
+*.tmp
+*.temp
