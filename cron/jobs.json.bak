@@ -8,7 +8,7 @@
       "name": "管管进化心跳 - 每20分钟",
       "enabled": true,
       "createdAtMs": 1773817720694,
-      "updatedAtMs": 1773918245163,
+      "updatedAtMs": 1773920497015,
       "schedule": {
         "expr": "*/20 * * * *",
         "kind": "cron",
@@ -27,15 +27,14 @@
         "to": "oc_887bdef216b66d0eb1934e2bb90758cf"
       },
       "state": {
-        "nextRunAtMs": 1773920400000,
-        "lastRunAtMs": 1773918000020,
+        "nextRunAtMs": 1773921600000,
+        "lastRunAtMs": 1773920400022,
         "lastRunStatus": "ok",
         "lastStatus": "ok",
-        "lastDurationMs": 245143,
+        "lastDurationMs": 96993,
         "lastDeliveryStatus": "delivered",
         "consecutiveErrors": 0,
-        "lastDelivered": true,
-        "runningAtMs": 1773920400017
+        "lastDelivered": true
       }
     },
     {
@@ -45,7 +44,7 @@
       "name": "小艺进化心跳 - 每20分钟",
       "enabled": true,
       "createdAtMs": 1773837490104,
-      "updatedAtMs": 1773918380067,
+      "updatedAtMs": 1773920704748,
       "schedule": {
         "expr": "*/20 * * * *",
         "kind": "cron",
@@ -64,15 +63,14 @@
         "to": "oc_887bdef216b66d0eb1934e2bb90758cf"
       },
       "state": {
-        "nextRunAtMs": 1773920400000,
-        "lastRunAtMs": 1773918245163,
+        "nextRunAtMs": 1773921600000,
+        "lastRunAtMs": 1773920497015,
         "lastRunStatus": "ok",
         "lastStatus": "ok",
-        "lastDurationMs": 134904,
+        "lastDurationMs": 207733,
         "lastDeliveryStatus": "delivered",
         "consecutiveErrors": 0,
-        "lastDelivered": true,
-        "runningAtMs": 1773920400017
+        "lastDelivered": true
       }
     },
     {
@@ -108,7 +106,8 @@
         "lastDurationMs": 23242,
         "lastDeliveryStatus": "not-delivered",
         "consecutiveErrors": 0,
-        "lastDelivered": false
+        "lastDelivered": false,
+        "runningAtMs": 1773920856082
       }
     },
     {
