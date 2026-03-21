@@ -1,0 +1,38 @@
+# Program Status
+
+- Current Phase: Stage 5/6 - importer and governance backend parallel kickoff
+- Current Requirement: `REQ-030`
+- Current Goal: Land `JAVA-033` full replay/reporting on top of the completed dry-run core while opening governance jobs through `JAVA-035`
+- Current Task: `JAVA-033` and `JAVA-035`
+- Recent Completed Items:
+  - completed `JAVA-025` and closed `REQ-013` by landing the shared stage 3 persistence seam plus the expanded aggregate roundtrip tests
+  - completed `JAVA-026`, `JAVA-027`, and `JAVA-028` with application-layer slices for relationships, host contracts, governance, and snapshots
+  - completed `JAVA-029` and `JAVA-030` with stage 4 REST/CLI parity across relationships, host contracts, snapshots, owner profile facts, and managed agent specs
+  - completed `JAVA-031` by unifying REST success/error envelopes, introducing error-code family routing, and adding CLI `table/json` output support
+  - completed `JAVA-032` with a dry-run legacy importer report core in `legacy-importer/`
+  - completed `JAVA-034` with an application-layer governance backend service for cockpit summary, projection rebuild orchestration, and owner profile compilation
+  - closed `REQ-002` with a reproducible remote smoke command at `py -3.12 ops/remote/run_neo4j_smoke.py`
+  - closed `REQ-003` with real remote Neo4j migration and adapter integration tests
+- Current Blockers:
+  - Docker is not installed on the current machine, so local container-backed verification remains blocked
+  - This workstation currently has low free memory, so only one heavy local Gradle verification lane can run at a time
+  - Phase 3 still depends on the legacy Python repository shape remaining stable enough for importer discovery rules
+  - `JAVA-033` is now the lead risk because full replay/reporting needs a tighter mapping contract than the dry-run heuristic scanner
+- Next Recommended Action:
+  - keep `JAVA-033` and `JAVA-035` moving in parallel, then reconcile their outputs into the next phase handoff
+- Latest Verification Result:
+  - `./gradlew.bat :domain-core:test :application:test :infra-neo4j:test` succeeded on 2026-03-21 after `JAVA-025`
+  - `./gradlew.bat :application:test` succeeded on 2026-03-21 after `JAVA-034`
+  - `./gradlew.bat :legacy-importer:test` succeeded on 2026-03-21 after `JAVA-032`
+  - `./gradlew.bat :interfaces-rest:test :interfaces-cli:test` succeeded on 2026-03-21 after `JAVA-031`
+  - `./gradlew.bat build` succeeded on 2026-03-21 after the first Phase 3 slices were integrated
+  - `py -3.12 ops/remote/run_neo4j_smoke.py` passes `DigitalBeingsNeo4jSmokeIT` against `bolt://114.67.156.250:17687`
+- Active Risks:
+  - Container-backed persistence verification is still blocked locally because this workstation has no Docker
+  - The remote verification node is now a live dependency and can drift or disappear if the host is changed outside this repo workflow
+  - Requirement backlog, task board, and implementation docs can drift if a work block updates only one layer
+  - Windows file locks can create false-negative Gradle failures if overlapping tasks are run in parallel
+  - The remote verification node is now part of the planned execution capacity, so host drift or credential changes can directly slow importer and governance replay work
+  - Importer mapping can drift if the source Python repository changes shape without updating `docs/MIGRATION-LEDGER.md`
+- Current Owner: Codex
+- Last Updated: 2026-03-21T20:00:00+08:00
