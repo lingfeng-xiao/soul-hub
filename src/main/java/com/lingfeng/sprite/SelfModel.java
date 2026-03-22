@@ -14,8 +14,9 @@ import java.util.stream.Collectors;
  *
  * SelfModel.Self
  * ├── identity         // 身份认同（beingId 跨平台一致）
- * ├── values           // 价值观体系
+ * ├── personality      // 人格特质（可演变）
  * ├── capabilities     // 能力认知
+ * ├── avatars          // 分身列表（多设备感知）
  * ├── metacognition    // 元认知（关于如何思考的知识）
  * ├── growthHistory    // 成长轨迹
  * ├── evolutionLevel   // 进化等级
@@ -24,6 +25,8 @@ import java.util.stream.Collectors;
  * ## 核心概念
  *
  * - IdentityCore - 自我认同核心（beingId 不可变）
+ * - Personality - 人格特质，包括本质、气质、价值观
+ * - Avatar - 分身，数字生命在某个设备上的实例
  * - Value - 价值观，带权重和适用情境
  * - Capability - 能力，带水平和置信度
  * - Metacognition - 元认知，包括学习风格、决策模式、已知盲点
@@ -200,20 +203,76 @@ public final class SelfModel {
         IDENTITY_DEEPENED
     }
 
+    // ==================== 分身感知 ====================
+
+    /**
+     * 分身 - 数字生命在某个设备上的实例
+     */
+    public record Avatar(
+        String deviceId,
+        String deviceType,
+        Instant lastSeen,
+        String localContext
+    ) {
+        public Avatar {
+            if (localContext == null) localContext = null;
+        }
+    }
+
+    /**
+     * 分身列表
+     */
+    public record Avatars(
+        List<Avatar> instances
+    ) {
+        public Avatars {
+            instances = instances != null ? List.copyOf(instances) : List.of();
+        }
+
+        public Avatars() {
+            this(List.of());
+        }
+    }
+
+    // ==================== 人格特质 ====================
+
+    /**
+     * 人格特质 - 可演变
+     */
+    public record Personality(
+        String essence,           // 本质定义（我是谁）
+        String vibe,           // 气质风格
+        List<Value> values,    // 价值观
+        List<String> decisionPatterns,  // 决策模式
+        List<String> blindSpots,       // 认知盲点
+        List<String> strengths          // 优势
+    ) {
+        public Personality {
+            values = values != null ? List.copyOf(values) : List.of();
+            decisionPatterns = decisionPatterns != null ? List.copyOf(decisionPatterns) : List.of();
+            blindSpots = blindSpots != null ? List.copyOf(blindSpots) : List.of();
+            strengths = strengths != null ? List.copyOf(strengths) : List.of();
+        }
+
+        public static Personality empty() {
+            return new Personality("", "", List.of(), List.of(), List.of(), List.of());
+        }
+    }
+
     /**
      * 自我模型完整视图
      */
     public record Self(
         IdentityCore identity,
-        List<Value> values,
+        Personality personality,
         List<Capability> capabilities,
+        Avatars avatars,
         Metacognition metacognition,
         List<GrowthEvent> growthHistory,
         int evolutionLevel,
         int evolutionCount
     ) {
         public Self {
-            values = values != null ? List.copyOf(values) : List.of();
             capabilities = capabilities != null ? List.copyOf(capabilities) : List.of();
             growthHistory = growthHistory != null ? List.copyOf(growthHistory) : List.of();
         }
@@ -224,8 +283,9 @@ public final class SelfModel {
         public static Self createDefault() {
             return new Self(
                 IdentityCore.createDefault(),
+                Personality.empty(),
                 List.of(),
-                List.of(),
+                new Avatars(),
                 new Metacognition(
                     "",
                     List.of(),
@@ -250,7 +310,7 @@ public final class SelfModel {
             GrowthEvent event = new GrowthEvent(Instant.now(), type, description, before, after, trigger);
             List<GrowthEvent> newHistory = new ArrayList<>(growthHistory);
             newHistory.add(event);
-            return new Self(identity, values, capabilities, metacognition, newHistory, evolutionLevel, evolutionCount + 1);
+            return new Self(identity, personality, capabilities, avatars, metacognition, newHistory, evolutionLevel, evolutionCount + 1);
         }
 
         /**
@@ -290,8 +350,9 @@ public final class SelfModel {
             Reflection reflection = new Reflection(Instant.now(), trigger, insight, behaviorChange);
             return new Self(
                 identity,
-                values,
+                personality,
                 capabilities,
+                avatars,
                 metacognition.withReflection(reflection),
                 growthHistory,
                 evolutionLevel,
@@ -303,7 +364,7 @@ public final class SelfModel {
          * 获取核心价值观描述
          */
         public String getCoreValuesSummary() {
-            return values.stream()
+            return personality.values().stream()
                 .sorted(Comparator.comparingDouble(Value::weight).reversed())
                 .limit(3)
                 .map(Value::name)
@@ -312,11 +373,15 @@ public final class SelfModel {
 
         // With methods for immutable updates
         public Self withIdentity(IdentityCore newIdentity) {
-            return new Self(newIdentity, values, capabilities, metacognition, growthHistory, evolutionLevel, evolutionCount);
+            return new Self(newIdentity, personality, capabilities, avatars, metacognition, growthHistory, evolutionLevel, evolutionCount);
         }
 
         public Self withCapabilities(List<Capability> newCapabilities) {
-            return new Self(identity, values, newCapabilities, metacognition, growthHistory, evolutionLevel, evolutionCount);
+            return new Self(identity, personality, newCapabilities, avatars, metacognition, growthHistory, evolutionLevel, evolutionCount);
+        }
+
+        public Self withPersonality(Personality newPersonality) {
+            return new Self(identity, newPersonality, capabilities, avatars, metacognition, growthHistory, evolutionLevel, evolutionCount);
         }
     }
 }

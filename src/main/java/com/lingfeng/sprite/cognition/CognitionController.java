@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import com.lingfeng.sprite.PerceptionSystem;
 import com.lingfeng.sprite.MemorySystem;
+import com.lingfeng.sprite.OwnerModel;
 import com.lingfeng.sprite.SelfModel;
 import com.lingfeng.sprite.WorldModel;
 import com.lingfeng.sprite.cognition.ReasoningEngine;
@@ -179,7 +180,7 @@ public class CognitionController {
         }
 
         if (worldModel.owner().emotionalState() != null) {
-            WorldModel.EmotionalState emotion = worldModel.owner().emotionalState();
+            OwnerModel.EmotionalState emotion = worldModel.owner().emotionalState();
             if (emotion.intensity() > 0.7) {
                 recommendations.add("注意主人情绪: " + emotion.currentMood());
                 priority = Math.max(priority, 1);

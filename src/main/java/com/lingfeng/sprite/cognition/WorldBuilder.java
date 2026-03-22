@@ -1,6 +1,7 @@
 package com.lingfeng.sprite.cognition;
 
 import com.lingfeng.sprite.PerceptionSystem;
+import com.lingfeng.sprite.OwnerModel;
 import com.lingfeng.sprite.SelfModel;
 import com.lingfeng.sprite.WorldModel;
 
@@ -64,37 +65,37 @@ public class WorldBuilder {
         PerceptionSystem.PresenceStatus currentPresence = perception.user() != null ?
             perception.user().presence() : null;
 
-        WorldModel.Mood mood = WorldModel.Mood.NEUTRAL;
+        OwnerModel.Mood mood = OwnerModel.Mood.NEUTRAL;
         if (currentPresence != null) {
             switch (currentPresence) {
-                case ACTIVE: mood = WorldModel.Mood.CALM; break;
-                case IDLE: mood = WorldModel.Mood.NEUTRAL; break;
-                case AWAY: mood = WorldModel.Mood.TIRED; break;
-                default: mood = WorldModel.Mood.NEUTRAL;
+                case ACTIVE: mood = OwnerModel.Mood.CALM; break;
+                case IDLE: mood = OwnerModel.Mood.NEUTRAL; break;
+                case AWAY: mood = OwnerModel.Mood.TIRED; break;
+                default: mood = OwnerModel.Mood.NEUTRAL;
             }
         }
 
-        WorldModel.Mood contextMood = mood;
+        OwnerModel.Mood contextMood = mood;
         if (perception.environment() != null) {
             switch (perception.environment().context()) {
-                case WORK: contextMood = WorldModel.Mood.CALM; break;
-                case LEISURE: contextMood = WorldModel.Mood.HAPPY; break;
-                case SLEEP: contextMood = WorldModel.Mood.TIRED; break;
+                case WORK: contextMood = OwnerModel.Mood.CALM; break;
+                case LEISURE: contextMood = OwnerModel.Mood.HAPPY; break;
+                case SLEEP: contextMood = OwnerModel.Mood.TIRED; break;
                 default: contextMood = mood;
             }
         }
 
-        WorldModel.Mood systemMood = contextMood;
+        OwnerModel.Mood systemMood = contextMood;
         if (perception.platform() != null) {
             if (perception.platform().battery() != null &&
                 perception.platform().battery().chargePercent() < 20) {
-                systemMood = WorldModel.Mood.ANXIOUS;
+                systemMood = OwnerModel.Mood.ANXIOUS;
             } else if (perception.platform().memory() != null &&
                 perception.platform().memory().usedPercent() > 80) {
-                systemMood = WorldModel.Mood.CONFUSED;
+                systemMood = OwnerModel.Mood.CONFUSED;
             } else if (perception.platform().network() != null &&
                 !perception.platform().network().isConnected()) {
-                systemMood = WorldModel.Mood.FRUSTRATED;
+                systemMood = OwnerModel.Mood.FRUSTRATED;
             }
         }
 
@@ -105,7 +106,7 @@ public class WorldBuilder {
         }
         lastPresence = currentPresence;
 
-        WorldModel.Mood finalMood = presenceStreak > 3 ? systemMood : mood;
+        OwnerModel.Mood finalMood = presenceStreak > 3 ? systemMood : mood;
 
         float intensity = 0.3f;
         switch (finalMood) {
@@ -147,8 +148,8 @@ public class WorldBuilder {
             }
 
             if (recentObs.size() >= 3) {
-                WorldModel.Habit existingHabit = null;
-                for (WorldModel.Habit h : world.owner().habits()) {
+                OwnerModel.Habit existingHabit = null;
+                for (OwnerModel.Habit h : world.owner().habits()) {
                     if (h.trigger().toLowerCase().contains(window.title().toLowerCase())) {
                         existingHabit = h;
                         break;
@@ -156,11 +157,11 @@ public class WorldBuilder {
                 }
 
                 if (existingHabit == null) {
-                    WorldModel.Habit habit = new WorldModel.Habit(
+                    OwnerModel.Habit habit = new OwnerModel.Habit(
                         UUID.randomUUID().toString(),
                         "打开 " + window.title(),
                         window.processName(),
-                        WorldModel.Frequency.USUALLY,
+                        OwnerModel.Frequency.USUALLY,
                         Instant.now(),
                         recentObs.size()
                     );
@@ -189,11 +190,11 @@ public class WorldBuilder {
             perception.user().activeWindow() : null;
         if (window != null) {
             String appType = window.appType().name();
-            WorldModel.Preference.Inferred existingPref = null;
-            for (WorldModel.Preference p : world.owner().inferredPreferences()) {
-                if (p instanceof WorldModel.Preference.Inferred &&
-                    ((WorldModel.Preference.Inferred) p).key().equals("preferred_app_type")) {
-                    existingPref = (WorldModel.Preference.Inferred) p;
+            OwnerModel.Preference.Inferred existingPref = null;
+            for (OwnerModel.Preference p : world.owner().inferredPreferences()) {
+                if (p instanceof OwnerModel.Preference.Inferred &&
+                    ((OwnerModel.Preference.Inferred) p).key().equals("preferred_app_type")) {
+                    existingPref = (OwnerModel.Preference.Inferred) p;
                     break;
                 }
             }
@@ -222,11 +223,11 @@ public class WorldBuilder {
 
         PerceptionSystem.EnvironmentPerception env = perception.environment();
         if (env != null) {
-            WorldModel.Preference.Inferred existingHours = null;
-            for (WorldModel.Preference p : world.owner().inferredPreferences()) {
-                if (p instanceof WorldModel.Preference.Inferred &&
-                    ((WorldModel.Preference.Inferred) p).key().equals("active_hours")) {
-                    existingHours = (WorldModel.Preference.Inferred) p;
+            OwnerModel.Preference.Inferred existingHours = null;
+            for (OwnerModel.Preference p : world.owner().inferredPreferences()) {
+                if (p instanceof OwnerModel.Preference.Inferred &&
+                    ((OwnerModel.Preference.Inferred) p).key().equals("active_hours")) {
+                    existingHours = (OwnerModel.Preference.Inferred) p;
                     break;
                 }
             }
@@ -252,7 +253,7 @@ public class WorldBuilder {
     ) {
         WorldModel.World updated = world;
 
-        WorldModel.EmotionalState emotion = updated.owner().emotionalState();
+        OwnerModel.EmotionalState emotion = updated.owner().emotionalState();
         if (emotion != null) {
             WorldModel.Fact fact = new WorldModel.Fact(
                 UUID.randomUUID().toString(),
@@ -326,7 +327,7 @@ public class WorldBuilder {
             return world;
         }
 
-        WorldModel.InteractionType interactionType = classifyInteraction(perception);
+        OwnerModel.InteractionType interactionType = classifyInteraction(perception);
         float sentiment = calculateSentiment(perception);
 
         return world.recordInteraction(interactionType, describePerception(perception), sentiment, null);
@@ -336,29 +337,29 @@ public class WorldBuilder {
         PerceptionSystem.Perception perception,
         WorldModel.World world
     ) {
-        WorldModel.Mood lastEmotion = world.owner().emotionalState() != null ?
+        OwnerModel.Mood lastEmotion = world.owner().emotionalState() != null ?
             world.owner().emotionalState().currentMood() : null;
 
-        WorldModel.Mood currentEmotion = WorldModel.Mood.NEUTRAL;
+        OwnerModel.Mood currentEmotion = OwnerModel.Mood.NEUTRAL;
         if (perception.user() != null) {
             switch (perception.user().presence()) {
-                case ACTIVE: currentEmotion = WorldModel.Mood.CALM; break;
-                case IDLE: currentEmotion = WorldModel.Mood.NEUTRAL; break;
-                case AWAY: currentEmotion = WorldModel.Mood.TIRED; break;
-                default: currentEmotion = WorldModel.Mood.NEUTRAL;
+                case ACTIVE: currentEmotion = OwnerModel.Mood.CALM; break;
+                case IDLE: currentEmotion = OwnerModel.Mood.NEUTRAL; break;
+                case AWAY: currentEmotion = OwnerModel.Mood.TIRED; break;
+                default: currentEmotion = OwnerModel.Mood.NEUTRAL;
             }
         }
 
         return lastEmotion != currentEmotion;
     }
 
-    private WorldModel.InteractionType classifyInteraction(PerceptionSystem.Perception perception) {
-        if (perception.user() == null) return WorldModel.InteractionType.QUESTION;
+    private OwnerModel.InteractionType classifyInteraction(PerceptionSystem.Perception perception) {
+        if (perception.user() == null) return OwnerModel.InteractionType.QUESTION;
         switch (perception.user().presence()) {
-            case ACTIVE: return WorldModel.InteractionType.REQUEST;
-            case IDLE: return WorldModel.InteractionType.CASUAL;
-            case AWAY: return WorldModel.InteractionType.CASUAL;
-            default: return WorldModel.InteractionType.QUESTION;
+            case ACTIVE: return OwnerModel.InteractionType.REQUEST;
+            case IDLE: return OwnerModel.InteractionType.CASUAL;
+            case AWAY: return OwnerModel.InteractionType.CASUAL;
+            default: return OwnerModel.InteractionType.QUESTION;
         }
     }
 
@@ -402,7 +403,7 @@ public class WorldBuilder {
     ) {}
 
     public record HabitLearning(
-        WorldModel.Habit habit,
+        OwnerModel.Habit habit,
         float confidence,
         String reason
     ) {}

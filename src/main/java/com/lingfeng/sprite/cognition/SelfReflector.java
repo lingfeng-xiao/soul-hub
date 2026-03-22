@@ -1,6 +1,7 @@
 package com.lingfeng.sprite.cognition;
 
 import com.lingfeng.sprite.PerceptionSystem;
+import com.lingfeng.sprite.OwnerModel;
 import com.lingfeng.sprite.SelfModel;
 import com.lingfeng.sprite.WorldModel;
 
@@ -57,7 +58,7 @@ public class SelfReflector {
         }
 
         // 3. 检查主人情绪状态
-        WorldModel.EmotionalState emotion = worldModel.owner().emotionalState();
+        OwnerModel.EmotionalState emotion = worldModel.owner().emotionalState();
         if (emotion != null && emotion.intensity() > 0.6f) {
             insights.add(reflectOnOwnerEmotion(selfModel, emotion));
         }
@@ -148,7 +149,7 @@ public class SelfReflector {
 
     private Insight reflectOnOwnerEmotion(
         SelfModel.Self selfModel,
-        WorldModel.EmotionalState emotion
+        OwnerModel.EmotionalState emotion
     ) {
         String content = String.format(
             "主人情绪%s（强度%d%%）。触发因素：%s。我应该%s。",
@@ -181,7 +182,7 @@ public class SelfReflector {
         return "主人正在进行某种活动";
     }
 
-    private String getEmotionalResponseGuidance(WorldModel.Mood mood) {
+    private String getEmotionalResponseGuidance(OwnerModel.Mood mood) {
         switch (mood) {
             case ANXIOUS: return "更加警觉，准备提供帮助";
             case FRUSTRATED: return "保持耐心，准备协助解决问题";
@@ -232,7 +233,7 @@ public class SelfReflector {
         StringBuilder sb = new StringBuilder();
         sb.append(inferWindowMeaning(window));
 
-        WorldModel.EmotionalState emotion = worldModel.owner().emotionalState();
+        OwnerModel.EmotionalState emotion = worldModel.owner().emotionalState();
         if (emotion != null) {
             sb.append("。情绪状态").append(emotion.currentMood().name()).append("可能表示");
             switch (emotion.currentMood()) {

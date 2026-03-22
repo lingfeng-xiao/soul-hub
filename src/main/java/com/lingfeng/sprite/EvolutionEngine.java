@@ -1,5 +1,7 @@
 package com.lingfeng.sprite;
 
+import com.lingfeng.sprite.OwnerModel;
+
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -155,7 +157,7 @@ public final class EvolutionEngine {
      */
     public record Observation(
         Instant timestamp,
-        List<WorldModel.Interaction> interactions,
+        List<OwnerModel.Interaction> interactions,
         List<Feedback.OutcomeFeedback> outcomes,
         WorldModel.Context context,
         List<String> patterns
@@ -262,7 +264,7 @@ public final class EvolutionEngine {
          * 记录观察
          */
         public Observation observe(
-            List<WorldModel.Interaction> interactions,
+            List<OwnerModel.Interaction> interactions,
             List<Feedback.OutcomeFeedback> outcomes,
             WorldModel.Context context,
             List<String> patterns
@@ -769,7 +771,7 @@ public final class EvolutionEngine {
             List<Feedback> recentFeedback = feedbackCollector.getRecentFeedback();
             OutcomeStats outcomeStats = feedbackCollector.getOutcomeStats();
 
-            List<WorldModel.Interaction> interactions = world.owner().interactionHistory().size() > 20 ?
+            List<OwnerModel.Interaction> interactions = world.owner().interactionHistory().size() > 20 ?
                 world.owner().interactionHistory().subList(world.owner().interactionHistory().size() - 20, world.owner().interactionHistory().size()) :
                 world.owner().interactionHistory();
             List<Feedback.OutcomeFeedback> outcomes = recentFeedback.stream()

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.lingfeng.sprite.EvolutionEngine;
 import com.lingfeng.sprite.MemorySystem;
+import com.lingfeng.sprite.OwnerModel;
 import com.lingfeng.sprite.PerceptionSystem;
 import com.lingfeng.sprite.SelfModel;
 import com.lingfeng.sprite.WorldModel;
@@ -238,7 +239,7 @@ public class UnifiedContextService {
             return "";
         }
 
-        WorldModel.Owner owner = world.owner();
+        OwnerModel.Owner owner = world.owner();
         StringBuilder sb = new StringBuilder();
 
         if (owner.identity() != null && owner.identity().name() != null) {

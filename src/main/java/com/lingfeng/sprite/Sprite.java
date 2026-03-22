@@ -151,8 +151,9 @@ public class Sprite {
                 selfModel.identity().createdAt(),
                 selfModel.identity().continuityChain()
             ),
-            selfModel.values(),
+            selfModel.personality(),
             selfModel.capabilities(),
+            selfModel.avatars(),
             selfModel.metacognition(),
             selfModel.growthHistory(),
             selfModel.evolutionLevel(),
@@ -292,8 +293,9 @@ public class Sprite {
         return new State(
             new SelfModel.Self(
                 identity.identity(),
-                cognitionState.selfModel().values(),
+                cognitionState.selfModel().personality(),
                 cognitionState.selfModel().capabilities(),
+                cognitionState.selfModel().avatars(),
                 cognitionState.selfModel().metacognition(),
                 cognitionState.selfModel().growthHistory(),
                 cognitionState.selfModel().evolutionLevel(),
