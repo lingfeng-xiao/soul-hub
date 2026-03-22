@@ -28,13 +28,13 @@
 - Acceptance: Export → stop source → import → all GET endpoints return identical data
 - Verification: All tests pass (`./gradlew test`)
 
-### JAVA-C2b Stage 9 Portable Snapshot JSON Schema
+### JAVA-C2b Stage 9 Portable Snapshot JSON Schema ✅ COMPLETED
 
 - Requirement: `REQ-090`
 - Stage: 9
-- Status: pending (can start now - C2a export schema is stable)
-- Dependencies: `JAVA-C2a` (export schema stable, can document now)
-- Note: Define schema in docs/PORTABLE-SNAPSHOT-FORMAT.md
+- Status: completed (2026-03-22)
+- Dependencies: `JAVA-C2a`
+- Outputs: `docs/PORTABLE-SNAPSHOT-FORMAT.md` — full RFC 8259 JSON schema with all nested records, enums, and import behaviour documented
 
 ## Planned
 
