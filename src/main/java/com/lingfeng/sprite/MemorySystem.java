@@ -596,6 +596,44 @@ public final class MemorySystem {
         public void pruneOldEntries() {
             pruneOldEntries(LONG_TERM_RETENTION_DAYS);
         }
+
+        // ==================== 持久化支持 ====================
+
+        /**
+         * 获取所有情景记忆（用于持久化）
+         */
+        public List<EpisodicEntry> getAllEpisodic() {
+            return new ArrayList<>(episodic);
+        }
+
+        /**
+         * 获取所有语义记忆（用于持久化）
+         */
+        public List<SemanticEntry> getAllSemantic() {
+            return new ArrayList<>(semantic);
+        }
+
+        /**
+         * 获取所有程序记忆（用于持久化）
+         */
+        public List<ProceduralEntry> getAllProcedural() {
+            return new ArrayList<>(procedural);
+        }
+
+        /**
+         * 持久化情景记忆包装器
+         */
+        public record PersistedEpisodicList(List<EpisodicEntry> entries) {}
+
+        /**
+         * 持久化语义记忆包装器
+         */
+        public record PersistedSemanticList(List<SemanticEntry> entries) {}
+
+        /**
+         * 持久化程序记忆包装器
+         */
+        public record PersistedProceduralList(List<ProceduralEntry> entries) {}
     }
 
     public record MemoryStats(
