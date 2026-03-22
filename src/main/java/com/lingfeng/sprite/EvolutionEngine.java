@@ -531,10 +531,24 @@ public final class EvolutionEngine {
         ) {
             if (!canModify(ModificationType.PREFERENCE)) return null;
 
+            // Get current values from personality and add new preference
+            List<SelfModel.Value> currentValues = self.personality().values() != null
+                ? new ArrayList<>(self.personality().values())
+                : new ArrayList<>();
+            currentValues.add(preference);
+
             SelfModel.Self updated = new SelfModel.Self(
                 self.identity(),
-                concat(self.values(), List.of(preference)),
+                new SelfModel.Personality(
+                    self.personality().essence(),
+                    self.personality().vibe(),
+                    List.copyOf(currentValues),
+                    self.personality().decisionPatterns(),
+                    self.personality().blindSpots(),
+                    self.personality().strengths()
+                ),
                 self.capabilities(),
+                self.avatars(),
                 self.metacognition(),
                 self.growthHistory(),
                 self.evolutionLevel(),
@@ -564,7 +578,7 @@ public final class EvolutionEngine {
 
             List<SelfModel.Value> updatedValues = new ArrayList<>();
             String oldWeight = null;
-            for (SelfModel.Value v : self.values()) {
+            for (SelfModel.Value v : self.personality().values()) {
                 if (v.name().equals(valueName)) {
                     oldWeight = String.valueOf(v.weight());
                     updatedValues.add(new SelfModel.Value(v.name(), newWeight, v.description(), v.situation()));
@@ -575,8 +589,16 @@ public final class EvolutionEngine {
 
             SelfModel.Self updated = new SelfModel.Self(
                 self.identity(),
-                List.copyOf(updatedValues),
+                new SelfModel.Personality(
+                    self.personality().essence(),
+                    self.personality().vibe(),
+                    List.copyOf(updatedValues),
+                    self.personality().decisionPatterns(),
+                    self.personality().blindSpots(),
+                    self.personality().strengths()
+                ),
                 self.capabilities(),
+                self.avatars(),
                 self.metacognition(),
                 self.growthHistory(),
                 self.evolutionLevel(),

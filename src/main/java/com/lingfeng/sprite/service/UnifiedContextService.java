@@ -218,7 +218,7 @@ public class UnifiedContextService {
         sb.append("我的本质是：").append(self.identity().essence()).append("。");
         sb.append("我的价值观：");
 
-        for (var value : self.values()) {
+        for (var value : self.personality().values()) {
             sb.append(value.name()).append("(").append(value.weight()).append(")、");
         }
 
