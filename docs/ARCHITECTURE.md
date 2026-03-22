@@ -780,64 +780,70 @@ ToolCall(tool, params)
 
 ## 9. Planned Improvements
 
-### 9.1 UnifiedContextService (To Be Created)
+### 9.1 UnifiedContextService (✓ Completed)
 
 A centralized service to manage context across all components:
 
-**Planned Location**: `src/main/java/com/lingfeng/sprite/service/UnifiedContextService.java`
+**Location**: `src/main/java/com/lingfeng/sprite/service/UnifiedContextService.java`
 
-**Responsibilities**:
+**Responsibilities** (Implemented):
 - Single source of truth for current perception, self, and world state
-- Event-based updates to subscribers
-- Context versioning for audit trails
-- Thread-safe access to shared state
+- Bridge between ConversationService and SpriteService
+- Thread-safe access via volatile fields
+- Conversation feedback recording to EvolutionEngine
 
-**Design**:
-```java
-@Service
-public class UnifiedContextService {
-    // Current context snapshot
-    private volatile ContextSnapshot currentContext;
+### 9.2 Memory Bean (✓ Completed)
 
-    // Publish context updates
-    public void updateContext(Perception perception, SelfModel.Self self, WorldModel.World world);
+Spring bean integration for memory system:
 
-    // Subscribe to changes
-    public void subscribe(ContextListener listener);
+**Location**: `src/main/java/com/lingfeng/sprite/config/MemoryConfig.java`
 
-    // Get current state
-    public ContextSnapshot getCurrentContext();
-}
-```
-
-### 9.2 Memory Bean (Spring Integration)
-
-Memory system needs proper Spring bean management:
-
-**Issues**:
-- `ConversationService` has `memory = null` because MemorySystem.Memory isn't available as Spring bean
-- Memory consolidation service needs better integration
-
-**Planned**:
+**Implementation**:
 ```java
 @Configuration
 public class MemoryConfig {
     @Bean
-    public MemorySystem.Memory memory() {
-        return new MemorySystem.Memory();
+    public Memory memory() {
+        return new Memory();
     }
 }
 ```
 
-### 9.3 RealUserSensor Enhancement
+### 9.3 RealUserSensor Enhancement (✓ Completed)
 
-**Current**: Returns placeholder data
+JNA-based window tracking implementation:
 
-**Planned**: JNA-based window tracking implementation
-- Active window title
-- Process name
-- Window class name
-- Focus detection
+**Location**: `src/main/java/com/lingfeng/sprite/sensor/RealUserSensor.java`
+
+**Implemented Features**:
+- Active window title via GetForegroundWindow/GetWindowTextW
+- Process name via Tasklist command
+- User idle detection via GetLastInputInfo
+- App type classification (BROWSER/DEV/CHAT/PRODUCTIVITY/MEDIA/SYSTEM)
+
+### 9.4 ProactiveService (✓ Completed)
+
+Active conversation service that monitors owner and initiates contact:
+
+**Location**: `src/main/java/com/lingfeng/sprite/service/ProactiveService.java`
+
+**Implemented Features**:
+- Idle detection (>30 min triggers proactive message)
+- Mood change detection
+- 15-minute cooldown between proactive messages
+- External trigger methods: triggerReminder(), triggerNotification()
+
+### 9.5 MemoryPersistenceService (✓ Completed)
+
+Long-term memory persistence to filesystem:
+
+**Location**: `src/main/java/com/lingfeng/sprite/service/MemoryPersistenceService.java`
+
+**Implemented Features**:
+- JSON persistence to data/memory/long-term/
+- Auto-load on startup
+- Auto-save every 30 minutes
+- Manual forceSave() method
 
 ### 9.4 Enhanced Perception Types
 
