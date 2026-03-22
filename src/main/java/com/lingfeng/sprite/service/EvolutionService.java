@@ -28,9 +28,17 @@ public class EvolutionService {
             return;
         }
 
+        // 关键：应用更新后的自我模型到 Sprite
+        if (result.updatedSelf() != null) {
+            sprite.updateSelfModel(result.updatedSelf());
+            logger.info("Applied evolution: new evolutionLevel={}, evolutionCount={}",
+                    result.updatedSelf().evolutionLevel(),
+                    result.updatedSelf().evolutionCount());
+        }
+
         // 记录进化洞察
         if (result.insight() != null) {
-            logger.debug("Evolution insight: {} - {}",
+            logger.info("Evolution insight: {} - {}",
                     result.insight().type(),
                     result.insight().hypothesis());
         }

@@ -330,6 +330,13 @@ public class Sprite {
     }
 
     /**
+     * 更新自我模型（用于进化引擎应用）
+     */
+    public void updateSelfModel(SelfModel.Self newSelfModel) {
+        cognitionController.updateSelfModel(newSelfModel);
+    }
+
+    /**
      * 启动 Sprite
      */
     public void start() {

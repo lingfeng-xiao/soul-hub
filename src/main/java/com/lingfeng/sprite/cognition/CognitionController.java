@@ -1,5 +1,8 @@
 package com.lingfeng.sprite.cognition;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.lingfeng.sprite.PerceptionSystem;
 import com.lingfeng.sprite.MemorySystem;
 import com.lingfeng.sprite.SelfModel;
@@ -15,6 +18,8 @@ import java.util.UUID;
  * 认知控制器 - 感知→认知闭环的核心协调器
  */
 public class CognitionController {
+    private static final Logger logger = LoggerFactory.getLogger(CognitionController.class);
+
     private final PerceptionSystem.System perceptionSystem;
     private final MemorySystem.Memory memory;
     private SelfModel.Self selfModel;
@@ -213,6 +218,17 @@ public class CognitionController {
             worldModel.knowledgeGraph().facts().size(),
             memStats.episodicCount() + memStats.semanticCount() + memStats.proceduralCount()
         );
+    }
+
+    /**
+     * 更新自我模型（用于进化引擎应用）
+     */
+    public void updateSelfModel(SelfModel.Self newSelfModel) {
+        if (newSelfModel != null) {
+            logger.info("Updating self model: evolutionLevel={}, evolutionCount={}",
+                    newSelfModel.evolutionLevel(), newSelfModel.evolutionCount());
+            this.selfModel = newSelfModel;
+        }
     }
 
     public record CognitionState(
