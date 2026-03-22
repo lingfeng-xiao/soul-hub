@@ -1,11 +1,22 @@
 package com.lingfeng.sprite;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 记忆系统 - 三层记忆架构
@@ -599,6 +610,97 @@ public final class MemorySystem {
 
         // ==================== 持久化支持 ====================
 
+        private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+            .registerModule(new JavaTimeModule())
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        private static final String MEMORY_DIR = "data/memory";
+
+        /**
+         * 保存所有记忆到文件
+         */
+        public void save() {
+            try {
+                Path dir = Paths.get(MEMORY_DIR);
+                Files.createDirectories(dir);
+
+                // 保存情景记忆
+                Path episodicFile = dir.resolve("episodic.json");
+                OBJECT_MAPPER.writeValue(episodicFile.toFile(), episodic);
+                logger.info("Saved {} episodic memories", episodic.size());
+
+                // 保存语义记忆
+                Path semanticFile = dir.resolve("semantic.json");
+                OBJECT_MAPPER.writeValue(semanticFile.toFile(), semantic);
+                logger.info("Saved {} semantic memories", semantic.size());
+
+                // 保存程序记忆
+                Path proceduralFile = dir.resolve("procedural.json");
+                OBJECT_MAPPER.writeValue(proceduralFile.toFile(), procedural);
+                logger.info("Saved {} procedural memories", procedural.size());
+
+                // 保存感知记忆
+                Path perceptiveFile = dir.resolve("perceptive.json");
+                OBJECT_MAPPER.writeValue(perceptiveFile.toFile(), perceptive);
+                logger.info("Saved {} perceptive memories", perceptive.size());
+
+            } catch (IOException e) {
+                logger.error("Failed to save memory: {}", e.getMessage());
+            }
+        }
+
+        /**
+         * 从文件加载所有记忆
+         */
+        public void load() {
+            try {
+                Path dir = Paths.get(MEMORY_DIR);
+
+                // 加载情景记忆
+                Path episodicFile = dir.resolve("episodic.json");
+                if (Files.exists(episodicFile)) {
+                    List<EpisodicEntry> loaded = OBJECT_MAPPER.readValue(episodicFile.toFile(),
+                        OBJECT_MAPPER.getTypeFactory().constructCollectionType(List.class, EpisodicEntry.class));
+                    episodic.clear();
+                    episodic.addAll(loaded);
+                    logger.info("Loaded {} episodic memories", loaded.size());
+                }
+
+                // 加载语义记忆
+                Path semanticFile = dir.resolve("semantic.json");
+                if (Files.exists(semanticFile)) {
+                    List<SemanticEntry> loaded = OBJECT_MAPPER.readValue(semanticFile.toFile(),
+                        OBJECT_MAPPER.getTypeFactory().constructCollectionType(List.class, SemanticEntry.class));
+                    semantic.clear();
+                    semantic.addAll(loaded);
+                    logger.info("Loaded {} semantic memories", loaded.size());
+                }
+
+                // 加载程序记忆
+                Path proceduralFile = dir.resolve("procedural.json");
+                if (Files.exists(proceduralFile)) {
+                    List<ProceduralEntry> loaded = OBJECT_MAPPER.readValue(proceduralFile.toFile(),
+                        OBJECT_MAPPER.getTypeFactory().constructCollectionType(List.class, ProceduralEntry.class));
+                    procedural.clear();
+                    procedural.addAll(loaded);
+                    logger.info("Loaded {} procedural memories", loaded.size());
+                }
+
+                // 加载感知记忆
+                Path perceptiveFile = dir.resolve("perceptive.json");
+                if (Files.exists(perceptiveFile)) {
+                    List<PerceptiveEntry> loaded = OBJECT_MAPPER.readValue(perceptiveFile.toFile(),
+                        OBJECT_MAPPER.getTypeFactory().constructCollectionType(List.class, PerceptiveEntry.class));
+                    perceptive.clear();
+                    perceptive.addAll(loaded);
+                    logger.info("Loaded {} perceptive memories", loaded.size());
+                }
+
+            } catch (IOException e) {
+                logger.warn("Failed to load memory (may be first run): {}", e.getMessage());
+            }
+        }
+
         /**
          * 获取所有情景记忆（用于持久化）
          */
@@ -634,6 +736,8 @@ public final class MemorySystem {
          * 持久化程序记忆包装器
          */
         public record PersistedProceduralList(List<ProceduralEntry> entries) {}
+
+        private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(LongTermMemory.class);
     }
 
     public record MemoryStats(
@@ -753,6 +857,20 @@ public final class MemorySystem {
         public SensoryMemory getSensory() { return sensory; }
         public WorkingMemory getWorking() { return working; }
         public LongTermMemory getLongTerm() { return longTerm; }
+
+        /**
+         * 保存长期记忆到文件
+         */
+        public void save() {
+            longTerm.save();
+        }
+
+        /**
+         * 从文件加载长期记忆
+         */
+        public void load() {
+            longTerm.load();
+        }
     }
 
     public record RecallResult(

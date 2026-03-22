@@ -56,6 +56,9 @@ public class SpriteService {
         this.memory = memory;
         this.unifiedContextService = unifiedContextService;
 
+        // 加载已保存的长期记忆
+        this.memory.load();
+
         // 创建感知系统（使用真实传感器）
         PerceptionSystem.DeviceType deviceType = PerceptionSystem.DeviceType.PC;
         PerceptionSystem.System perceptionSystem = new PerceptionSystem.System(
@@ -117,6 +120,9 @@ public class SpriteService {
 
         // 记忆整合
         memoryConsolidationService.consolidateIfNeeded(memory);
+
+        // 每轮保存一次记忆（避免丢失）
+        memory.save();
 
         // 应用进化结果
         evolutionService.applyEvolution(sprite);
