@@ -237,7 +237,7 @@ public class UnifiedContextService {
 
         // 添加元认知信息
         if (self.metacognition() != null) {
-            sb.append("自我认知能力：").append(self.metacognition().selfAwarenessLevel()).append("。");
+            sb.append("学习风格：").append(self.metacognition().learningStyle()).append("。");
         }
 
         return sb.toString();
@@ -271,7 +271,7 @@ public class UnifiedContextService {
 
         // 信任等级
         if (owner.trustLevel() != null) {
-            sb.append("信任等级：").append(String.format("%.2f", owner.trustLevel().level())).append("。");
+            sb.append("信任等级：").append(String.format("%.2f", owner.trustLevel().overall())).append("。");
         }
 
         // 当前情绪状态
@@ -290,7 +290,7 @@ public class UnifiedContextService {
         // 习惯
         if (owner.habits() != null && !owner.habits().isEmpty()) {
             sb.append("已学习习惯：");
-            owner.habits().stream().limit(3).forEach(h -> sb.append(h.pattern()).append("、"));
+            owner.habits().stream().limit(3).forEach(h -> sb.append(h.trigger()).append("->").append(h.action()).append("、"));
             sb.append("。");
         }
 
