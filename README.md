@@ -64,36 +64,38 @@ cp sprite.conf.json.example sprite.conf.json
 ### 2. 构建项目
 
 ```bash
-./gradlew build
+./mvnw compile
 ```
 
 ### 3. 使用示例
 
-```kotlin
-import com.lingfeng.sprite.*
-import com.lingfeng.sprite.llm.MinMaxConfig
+```java
+import com.lingfeng.sprite.*;
+import com.lingfeng.sprite.llm.MinMaxConfig;
 
 // 无 LLM（使用启发式推理）
-val sprite = Sprite.create("小艺", Sprite.Platform.PC)
+Sprite sprite = Sprite.create("雪梨", Sprite.Platform.PC);
 
 // 带 MinMax LLM
-val config = MinMaxConfig(apiKey = "your-api-key")
-val sprite = Sprite.create("小艺", Sprite.Platform.PC, llmConfig = config)
+MinMaxConfig config = new MinMaxConfig("your-api-key");
+Sprite sprite = Sprite.create("雪梨", Sprite.Platform.PC, UUID.randomUUID().toString(), config);
 
 // 执行单轮认知闭环
-val result = sprite.cognitionCycle()
-println("行动建议: ${result.actionRecommendation}")
-println("LLM推理: ${result.reasoningResult}")
+CognitionController.CognitionResult result = sprite.cognitionCycle();
+System.out.println("行动建议: " + result.actionRecommendation());
+System.out.println("LLM推理: " + result.reasoningResult());
 ```
 
 ## 文档
 
+- [ARCHITECTURE.md](docs/ARCHITECTURE.md) - 完整架构文档
 - [ADR-006: Sprite 闭环架构](docs/adr/ADR-006-sprite-closed-loop-architecture.md)
 
 ## 技术栈
 
-- Kotlin
-- Gradle
-- Ktor (HTTP 客户端)
-- kotlinx-serialization (JSON)
+- Java 21
+- Spring Boot 3.2.3
+- Maven
+- OSHI (系统监控)
 - MinMax LLM API
+- JNA (本地接口)

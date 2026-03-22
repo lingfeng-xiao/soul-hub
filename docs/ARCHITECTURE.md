@@ -175,31 +175,36 @@ public class Sprite {
 
 ### 3.2 SelfModel (Self Identity)
 
-Represents the digital being's self-understanding including identity, values, capabilities, and metacognition.
+Represents the digital being's self-understanding including identity, personality, capabilities, avatars, and metacognition.
 
 **File**: `src/main/java/com/lingfeng/sprite/SelfModel.java`
 
 **Data Structure**:
 ```
 SelfModel.Self
-├── identity        (IdentityCore: beingId, displayName, essence, emoji, vibe)
-├── values          (List<Value>: name, weight, description, situation)
-├── capabilities    (List<Capability>: name, level, confidence)
-├── metacognition   (learningStyle, decisionPatterns, blindSpots, strengths)
+├── identity        (IdentityCore: beingId, displayName, essence, emoji, vibe, createdAt, continuityChain)
+├── personality    (Personality: essence, vibe, values, decisionPatterns, blindSpots, strengths)
+├── capabilities    (List<Capability>: name, level, confidence, lastPracticed)
+├── avatars        (Avatars: instances - deviceId, deviceType, lastSeen, localContext)
+├── metacognition   (learningStyle, decisionPatterns, blindSpots, strengths, reflectionHistory)
 ├── growthHistory   (List<GrowthEvent>)
 ├── evolutionLevel  (int)
 └── evolutionCount (int)
 ```
+
+**Key Records**:
+- `IdentityCore`: Immutable core identity (beingId, displayName, createdAt, continuityChain)
+- `Personality`: Mutable personality traits (essence, vibe, values, patterns, blindSpots, strengths)
+- `Avatar`: Digital being instance on a specific device
+- `Capability`: Named skill with level (MASTER/ADVANCED/BASIC/NONE) and confidence
+- `Metacognition`: Self-awareness of learning style, decision patterns, blind spots
 
 **Key Immutable Constraints**:
 - `beingId` cannot change (ensures continuity across platforms)
 - `createdAt` cannot change
 - `evolutionLevel` only increases
 
-**Default Values**:
-- Name: "小艺"
-- Essence: "电脑精灵"
-- Values: 成长(0.9), 诚实(0.8), 效率(0.85), 预判(0.8)
+**Creation**: Use `Self.createDefault()` for empty model or `SelfModel.Self.builder()` for configured instance.
 
 ---
 
@@ -207,34 +212,46 @@ SelfModel.Self
 
 Deep understanding of the owner (主人) and physical/digital environment.
 
-**File**: `src/main/java/com/lingfeng/sprite/WorldModel.java`
+**Files**:
+- `src/main/java/com/lingfeng/sprite/WorldModel.java` - World model structure
+- `src/main/java/com/lingfeng/sprite/OwnerModel.java` - Complete owner model
 
 **Data Structure**:
 ```
 WorldModel.World
-├── owner              (Owner profile - core)
-│   ├── identity       (Person: name, occupation)
-│   ├── goals         (List<Goal>)
-│   ├── beliefs       (List<Belief>)
-│   ├── habits        (List<Habit>)
-│   ├── explicitPreferences    (List<Preference.Explicit>)
-│   ├── inferredPreferences    (List<Preference.Inferred>)
-│   ├── emotionalState (EmotionalState)
-│   ├── interactionHistory (List<Interaction>)
-│   ├── trustLevel    (TrustLevel)
-│   ├── workStyle     (WorkStyle)
-│   └── communicationStyle (CommunicationStyle)
-├── physicalWorld     (PhysicalWorld: locations, devices, schedules)
-├── socialGraph       (SocialGraph: people, relationships)
-├── knowledgeGraph    (KnowledgeGraph: facts, beliefs, concepts)
-└── currentContext    (Context: location, time, activity, emotion)
+├── owner              (OwnerModel.Owner)  ← 引用独立的主人模型
+├── physicalWorld     (locations, devices, schedules)
+├── socialGraph       (people, relationships)
+├── knowledgeGraph    (facts, beliefs, concepts)
+└── currentContext    (location, time, activity, emotionalState, attention, urgency)
+```
+
+**OwnerModel.Owner Structure**:
+```
+OwnerModel.Owner
+├── identity           (OwnerIdentity: name, occupation, relationships)
+├── lifeContext       (workplace, home, family, schedules)
+├── goals            (List<Goal>: id, title, priority, deadline, progress)
+├── beliefs          (List<Belief>: statement, confidence, source)
+├── habits           (List<Habit>: trigger, action, frequency)
+├── emotionalState   (Mood, intensity, triggers, recentMoods)
+├── explicitPreferences    (List<Preference.Explicit>)
+├── inferredPreferences    (List<Preference.Inferred>)
+├── trustLevel       (overall, aspects, history)
+├── workStyle        (peakHours, approach, breakPattern, environment)
+├── communicationStyle (tone, verbosity, preferredFormat, language)
+├── digitalFootprint (devices, frequentApps, activeHours)
+├── interactionHistory (List<Interaction>)
+└── lastUpdated
 ```
 
 **Key Concepts**:
-- **Preference** (sealed interface): Explicit (stated) vs Inferred (deduced)
-- **Belief**: Statement with confidence and source (EXPLICIT_STATED, OBSERVED_BEHAVIOR, DEDUCED)
-- **Habit**: Trigger-action pattern with frequency tracking
+- **OwnerModel.Owner**: Complete owner model in separate file from `OwnerModel.java`
+- **Preference** (sealed interface in OwnerModel): Explicit (stated) vs Inferred (deduced)
+- **Belief**: Statement with confidence and source (EXPLICIT_STATED, OBSERVED_BEHAVIOR, DEDUCED, UNCERTAIN)
+- **Habit**: Trigger-action pattern with frequency tracking (ALWAYS, USUALLY, SOMETIMES, RARELY, UNKNOWN)
 - **TrustLevel**: Tracks trust across aspects with history
+- **DigitalFootprint**: Tracks owner's devices, apps, and active hours
 
 ---
 
@@ -866,8 +883,9 @@ Long-term memory persistence to filesystem:
 ```
 src/main/java/com/lingfeng/sprite/
 ├── Sprite.java                      # Core digital being
-├── SelfModel.java                   # Self identity and metacognition
-├── WorldModel.java                  # Owner and environment model
+├── SelfModel.java                   # Self identity, personality, avatars, capabilities
+├── OwnerModel.java                  # Complete owner model
+├── WorldModel.java                  # World model referencing OwnerModel.Owner
 ├── PerceptionSystem.java            # Multi-sensor perception
 ├── MemorySystem.java                # Three-tier memory
 ├── EvolutionEngine.java             # Self-improvement feedback loop
@@ -883,20 +901,23 @@ src/main/java/com/lingfeng/sprite/
 ├── service/
 │   ├── SpriteService.java            # Spring lifecycle management
 │   ├── ConversationService.java     # Chat handling with LLM
+│   ├── UnifiedContextService.java   # Context bridge for conversations
+│   ├── ProactiveService.java        # Idle/mood-based outreach
 │   ├── ActionExecutor.java          # Plugin-based action execution
 │   ├── MemoryConsolidationService.java
 │   └── EvolutionService.java
 │
 ├── sensor/
 │   ├── RealPlatformSensor.java      # OSHI-based system metrics
-│   ├── RealUserSensor.java          # Window tracking (placeholder)
-│   └── RealEnvironmentSensor.java  # Time-based context
+│   ├── RealUserSensor.java          # Window tracking via JNA
+│   └── RealEnvironmentSensor.java   # Time-based context
 │
 ├── llm/
 │   ├── MinMaxLlmReasoner.java       # MinMax API integration
-│   ├── MinMaxConfig.java            # API configuration
-│   ├── LlmConfig.java               # LLM settings
-│   └── ChatModels.java              # Shared data types
+│   └── MinMaxConfig.java            # API configuration
+│
+├── controller/
+│   └── SpriteController.java        # REST API endpoints
 │
 ├── action/
 │   ├── ActionPlugin.java            # Action interface
@@ -905,9 +926,11 @@ src/main/java/com/lingfeng/sprite/
 │       ├── LogAction.java
 │       └── NotifyAction.java
 │
+├── event/
+│   └── SpriteEventListener.java      # Spring event handling
+│
 └── config/
-    ├── AppConfig.java
-    └── WebSocketConfig.java
+    └── AppConfig.java
 ```
 
 ---
