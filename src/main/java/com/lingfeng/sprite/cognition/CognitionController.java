@@ -85,6 +85,14 @@ public class CognitionController {
 
         // 7. 推理（使用 LLM 或启发式）
         ReasoningEngine.ReasoningResult reasoningResult = null;
+        MemoryRetrievalService.RetrievalContext retrievalContext = null;
+
+        // 7a. 检索相关长期记忆（无论是否有推理引擎都需要）
+        WorldModel.Context worldContext = worldModel.currentContext();
+        OwnerModel.Mood ownerMood = worldModel.owner().emotionalState() != null ?
+            worldModel.owner().emotionalState().currentMood() : null;
+        retrievalContext = memoryRetrievalService.retrieve(worldContext, ownerMood);
+
         if (reasoningEngine != null) {
             List<String> recentActions = memory.getWorking().getAll().stream()
                 .map(item -> item.content().toString())
@@ -100,12 +108,6 @@ public class CognitionController {
                 .map(s -> s.content().toString())
                 .toList();
 
-            // 7a. 检索相关长期记忆
-            WorldModel.Context worldContext = worldModel.currentContext();
-            OwnerModel.Mood ownerMood = worldModel.owner().emotionalState() != null ?
-                worldModel.owner().emotionalState().currentMood() : null;
-            MemoryRetrievalService.RetrievalContext retrievalContext =
-                memoryRetrievalService.retrieve(worldContext, ownerMood);
             String memoryHighlights = memoryRetrievalService.buildMemoryContextString(retrievalContext);
 
             ReasoningEngine.ReasoningContext reasoningContext = new ReasoningEngine.ReasoningContext(

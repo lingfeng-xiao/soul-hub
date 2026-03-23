@@ -204,9 +204,9 @@ public class BehaviorEmotionInferrer {
         return switch (activity) {
             case WORK -> new MoodAdjustment(OwnerModel.Mood.CONFIDENT, 0.6f, "工作模式");
             case LEISURE -> new MoodAdjustment(OwnerModel.Mood.CALM, 0.6f, "休闲模式");
-            case CREATIVE -> new MoodAdjustment(OwnerModel.Mood.HAPPY, 0.7f, "创作模式");
-            case SOCIAL -> new MoodAdjustment(OwnerModel.Mood.HAPPY, 0.6f, "社交模式");
-            case IDLE -> new MoodAdjustment(OwnerModel.Mood.NEUTRAL, 0.3f, "空闲中");
+            case SLEEP -> new MoodAdjustment(OwnerModel.Mood.TIRED, 0.7f, "睡眠模式");
+            case COMMUTE -> new MoodAdjustment(OwnerModel.Mood.NEUTRAL, 0.4f, "通勤中");
+            case MEAL -> new MoodAdjustment(OwnerModel.Mood.CALM, 0.5f, "用餐中");
             case UNKNOWN -> new MoodAdjustment(OwnerModel.Mood.NEUTRAL, 0.3f, "未知活动");
         };
     }
