@@ -45,6 +45,7 @@ public class SpriteService {
     private final UnifiedContextService unifiedContextService;
     private final AvatarService avatarService;
     private final WebhookService webhookService;
+    private final MultiDeviceCoordinationService multiDeviceCoordinationService;
 
     public SpriteService(
             AppConfig appConfig,
@@ -56,7 +57,8 @@ public class SpriteService {
             MemorySystem.Memory memory,
             UnifiedContextService unifiedContextService,
             AvatarService avatarService,
-            WebhookService webhookService
+            WebhookService webhookService,
+            MultiDeviceCoordinationService multiDeviceCoordinationService
     ) {
         this.memoryConsolidationService = memoryConsolidationService;
         this.evolutionService = evolutionService;
@@ -65,6 +67,7 @@ public class SpriteService {
         this.unifiedContextService = unifiedContextService;
         this.avatarService = avatarService;
         this.webhookService = webhookService;
+        this.multiDeviceCoordinationService = multiDeviceCoordinationService;
 
         // 加载已保存的长期记忆
         this.memory.load();
@@ -164,6 +167,13 @@ public class SpriteService {
 
         // 更新当前设备的心跳
         avatarService.updateLastSeen(avatarService.getCurrentDeviceId());
+
+        // S14-3: 广播状态到其他设备
+        Sprite.State currentState = sprite.getState();
+        multiDeviceCoordinationService.broadcast(
+            MultiDeviceCoordinationService.MessageType.STATE_SYNC,
+            "state:" + currentState.name() + ",mood:" + (currentState.mood() != null ? currentState.mood().name() : "neutral")
+        );
 
         // 执行认知闭环
         CognitionController.CognitionResult result = sprite.cognitionCycle();
@@ -366,6 +376,8 @@ public class SpriteService {
     public void start() {
         sprite.start();
         logger.info("Sprite started");
+        // S14-2: 注册当前设备到多设备协同服务
+        multiDeviceCoordinationService.registerCurrentDevice();
         // S13-1: 触发Sprite启动事件
         webhookService.triggerEvent(WebhookService.EventType.SPRITE_STARTED,
             Map.of("timestamp", Instant.now().toString()));

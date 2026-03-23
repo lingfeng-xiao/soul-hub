@@ -26,6 +26,7 @@ import com.lingfeng.sprite.service.EvolutionDashboardService;
 import com.lingfeng.sprite.service.CognitionDashboardService;
 import com.lingfeng.sprite.service.ExternalApiAdapterService;
 import com.lingfeng.sprite.service.PerformanceMonitorService;
+import com.lingfeng.sprite.service.MultiDeviceCoordinationService;
 import com.lingfeng.sprite.service.SpriteService;
 
 /**
@@ -49,6 +50,7 @@ public class SpriteController {
     private final CognitionDashboardService cognitionDashboardService;
     private final ExternalApiAdapterService externalApiService;
     private final PerformanceMonitorService performanceMonitorService;
+    private final MultiDeviceCoordinationService multiDeviceCoordinationService;
 
     public SpriteController(
             SpriteService spriteService,
@@ -62,7 +64,8 @@ public class SpriteController {
             EvolutionDashboardService evolutionDashboardService,
             CognitionDashboardService cognitionDashboardService,
             ExternalApiAdapterService externalApiService,
-            PerformanceMonitorService performanceMonitorService
+            PerformanceMonitorService performanceMonitorService,
+            MultiDeviceCoordinationService multiDeviceCoordinationService
     ) {
         this.spriteService = spriteService;
         this.healthMonitorService = healthMonitorService;
@@ -76,6 +79,7 @@ public class SpriteController {
         this.cognitionDashboardService = cognitionDashboardService;
         this.externalApiService = externalApiService;
         this.performanceMonitorService = performanceMonitorService;
+        this.multiDeviceCoordinationService = multiDeviceCoordinationService;
     }
 
     /**
@@ -471,6 +475,129 @@ public class SpriteController {
         PerformanceMonitorService.PerformanceSnapshot snapshot = performanceMonitorService.getSnapshot();
         return ResponseEntity.ok(snapshot);
     }
+
+    // ==================== S14: 多设备协同接口 ====================
+
+    /**
+     * S14-4: GET /api/sprite/devices - 获取所有设备列表
+     */
+    @GetMapping("/devices")
+    public ResponseEntity<List<MultiDeviceCoordinationService.DeviceInfo>> getAllDevices() {
+        List<MultiDeviceCoordinationService.DeviceInfo> devices = multiDeviceCoordinationService.getAllDevices();
+        return ResponseEntity.ok(devices);
+    }
+
+    /**
+     * S14-4: GET /api/sprite/devices/status - 获取设备协同状态
+     */
+    @GetMapping("/devices/status")
+    public ResponseEntity<MultiDeviceCoordinationService.CoordinationStatus> getCoordinationStatus() {
+        MultiDeviceCoordinationService.CoordinationStatus status = multiDeviceCoordinationService.getStatus();
+        return ResponseEntity.ok(status);
+    }
+
+    /**
+     * S14-4: POST /api/sprite/devices/sync - 触发与其他设备的状态同步
+     */
+    @PostMapping("/devices/sync")
+    public ResponseEntity<List<MultiDeviceCoordinationService.CoordinationMessage>> triggerSync() {
+        List<MultiDeviceCoordinationService.CoordinationMessage> messages =
+            multiDeviceCoordinationService.triggerStateSync();
+        return ResponseEntity.ok(messages);
+    }
+
+    /**
+     * S14-4: GET /api/sprite/devices/local - 获取本地设备信息
+     */
+    @GetMapping("/devices/local")
+    public ResponseEntity<MultiDeviceCoordinationService.DeviceInfo> getLocalDevice() {
+        String localDeviceId = multiDeviceCoordinationService.getLocalDeviceId();
+        MultiDeviceCoordinationService.DeviceInfo device =
+            multiDeviceCoordinationService.getDevice(localDeviceId);
+        if (device != null) {
+            return ResponseEntity.ok(device);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    /**
+     * S14-4: POST /api/sprite/devices/register - 注册远程设备
+     */
+    @PostMapping("/devices/register")
+    public ResponseEntity<Void> registerDevice(@RequestBody DeviceRegistrationRequest request) {
+        multiDeviceCoordinationService.registerDevice(
+            request.deviceId(),
+            request.deviceName(),
+            request.deviceType(),
+            request.ipAddress()
+        );
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * S14-4: DELETE /api/sprite/devices/{deviceId} - 注销设备
+     */
+    @DeleteMapping("/devices/{deviceId}")
+    public ResponseEntity<Void> unregisterDevice(@PathVariable String deviceId) {
+        multiDeviceCoordinationService.unregisterDevice(deviceId);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * S14-4: PUT /api/sprite/devices/{deviceId}/state - 更新设备状态
+     */
+    @PutMapping("/devices/{deviceId}/state")
+    public ResponseEntity<Void> updateDeviceState(
+            @PathVariable String deviceId,
+            @RequestParam MultiDeviceCoordinationService.DeviceState state) {
+        multiDeviceCoordinationService.updateDeviceState(deviceId, state);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * S14-4: POST /api/sprite/devices/message - 发送消息到指定设备
+     */
+    @PostMapping("/devices/message")
+    public ResponseEntity<MultiDeviceCoordinationService.CoordinationMessage> sendMessage(
+            @RequestBody DeviceMessageRequest request) {
+        MultiDeviceCoordinationService.CoordinationMessage message =
+            multiDeviceCoordinationService.sendMessage(
+                request.targetDeviceId(),
+                request.messageType(),
+                request.content()
+            );
+        return ResponseEntity.ok(message);
+    }
+
+    /**
+     * S14-4: GET /api/sprite/devices/{deviceId}/messages - 获取与指定设备的消息历史
+     */
+    @GetMapping("/devices/{deviceId}/messages")
+    public ResponseEntity<List<MultiDeviceCoordinationService.CoordinationMessage>> getDeviceMessages(
+            @PathVariable String deviceId) {
+        List<MultiDeviceCoordinationService.CoordinationMessage> messages =
+            multiDeviceCoordinationService.getMessagesForDevice(deviceId);
+        return ResponseEntity.ok(messages);
+    }
+
+    /**
+     * 设备注册请求
+     */
+    public record DeviceRegistrationRequest(
+        String deviceId,
+        String deviceName,
+        MultiDeviceCoordinationService.DeviceType deviceType,
+        String ipAddress
+    ) {}
+
+    /**
+     * 设备消息请求
+     */
+    public record DeviceMessageRequest(
+        String targetDeviceId,
+        MultiDeviceCoordinationService.MessageType messageType,
+        String content
+    ) {}
 
     /**
      * 反馈请求 DTO

@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 /**
  * S9-4: 多设备协同服务
@@ -18,6 +19,7 @@ import org.slf4j.LoggerFactory;
  * - 状态同步
  * - 协调决策
  */
+@Service
 public class MultiDeviceCoordinationService {
 
     private static final Logger logger = LoggerFactory.getLogger(MultiDeviceCoordinationService.class);
@@ -129,6 +131,30 @@ public class MultiDeviceCoordinationService {
     }
 
     // ==================== 设备管理 ====================
+
+    /**
+     * S14-2: 注册本地设备
+     */
+    public void registerCurrentDevice(String deviceName, String ipAddress) {
+        DeviceInfo device = new DeviceInfo(
+            localDeviceId,
+            deviceName != null ? deviceName : "Local Device",
+            DeviceType.PC,
+            Instant.now(),
+            DeviceState.ONLINE,
+            ipAddress != null ? ipAddress : "",
+            100
+        );
+        registeredDevices.put(localDeviceId, device);
+        logger.info("Local device registered: {} ({})", deviceName, localDeviceId);
+    }
+
+    /**
+     * S14-2: 注册本地设备（使用默认名称）
+     */
+    public void registerCurrentDevice() {
+        registerCurrentDevice("Local Device", "");
+    }
 
     /**
      * 注册设备
