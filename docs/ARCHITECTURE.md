@@ -30,6 +30,10 @@
    - [5.9 PerformanceMonitorService](#59-performancemonitorservice-s11)
    - [5.10 ApiDocService](#510-apidocservice-s11)
    - [5.11 MultiDeviceCoordinationService](#511-multidevicecoordinationservice-s9)
+   - [5.12 CognitionDashboardService](#512-cognitiondashboardservice-s10)
+   - [5.13 MemoryVisualizationService](#513-memoryvisualizationservice-s10)
+   - [5.14 EvolutionDashboardService](#514-evolutiondashboardservice-s10)
+   - [5.15 OwnerEmotionDashboardService](#515-owneremotiondashboardservice-s10)
 6. [Sensors](#6-sensors)
    - [6.1 RealPlatformSensor](#61-realplatformsensor)
    - [6.2 RealUserSensor](#62-realusersensor)
@@ -707,6 +711,77 @@ Multi-device coordination and state synchronization.
 ```java
 DeviceInfo(deviceId, deviceName, deviceType, ipAddress, lastSeen, status)
 CoordinationMessage(id, sourceDevice, targetDevice, type, content, timestamp, status)
+```
+
+### 5.12 CognitionDashboardService (S10)
+
+Cognitive state visualization and analysis.
+
+**File**: `src/main/java/com/lingfeng/sprite/service/CognitionDashboardService.java`
+
+**Features**:
+- Cognitive event recording (perception, context building, reasoning, decision, action, learning)
+- Phase statistics and cycle analysis
+- Cognitive health indicators
+
+**Key Types**:
+```java
+CognitionEvent(timestamp, phase, description, durationMs, success)
+CognitionDashboardData(cognitionEvents, phaseStats, cycles, health)
+```
+
+### 5.13 MemoryVisualizationService (S10)
+
+Memory system visualization and analysis.
+
+**File**: `src/main/java/com/lingfeng/sprite/service/MemoryVisualizationService.java`
+
+**Features**:
+- Memory type statistics (episodic, semantic, procedural, perceptive, working)
+- Memory strength distribution
+- Memory activity timeline
+- Memory age distribution
+
+**Key Types**:
+```java
+MemoryTypeStats(episodicCount, semanticCount, proceduralCount, perceptiveCount, workingMemoryCount)
+MemoryVisualizationData(typeStats, strengthDistribution, activity, ageDistribution, timeline)
+```
+
+### 5.14 EvolutionDashboardService (S10)
+
+Evolution history visualization and trend analysis.
+
+**File**: `src/main/java/com/lingfeng/sprite/service/EvolutionDashboardService.java`
+
+**Features**:
+- Evolution history tracking (level, total evolutions, insights, modifications)
+- Trend analysis (improving, stable, declining)
+- Insight and behavior summaries
+
+**Key Types**:
+```java
+EvolutionSnapshot(timestamp, evolutionLevel, totalEvolutions, insights, modifications)
+EvolutionDashboardData(snapshots, trends, insightSummary, behaviorSummary)
+```
+
+### 5.15 OwnerEmotionDashboardService (S10)
+
+Owner emotion history visualization and pattern analysis.
+
+**File**: `src/main/java/com/lingfeng/sprite/service/OwnerEmotionDashboardService.java`
+
+**Features**:
+- Emotion snapshot recording
+- Emotion distribution analysis
+- Weekly pattern detection
+- Optimal contact time recommendations
+
+**Key Types**:
+```java
+EmotionSnapshot(timestamp, sentiment, emotion, trigger, context)
+EmotionDistribution(happy, neutral, sad, frustrated, stressed)
+OwnerEmotionDashboardData(snapshots, distribution, weeklyPatterns, optimalContactTimes)
 ```
 
 ---
