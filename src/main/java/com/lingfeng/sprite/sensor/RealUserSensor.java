@@ -3,6 +3,8 @@ package com.lingfeng.sprite.sensor;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +32,7 @@ import com.sun.jna.win32.W32APIOptions;
  * - 用户空闲时间
  * - 进程信息
  *
- * Linux 环境下返回默认感知数据
+ * Linux 环境下使用 xdotool 和 /proc 获取数据
  */
 public class RealUserSensor extends UserSensor {
 
@@ -39,6 +41,7 @@ public class RealUserSensor extends UserSensor {
     private static final int IDLE_THRESHOLD_SECONDS = 300; // 5分钟空闲
 
     private static final boolean IS_WINDOWS = System.getProperty("os.name", "").toLowerCase().contains("windows");
+    private static final boolean IS_LINUX = System.getProperty("os.name", "").toLowerCase().contains("linux");
 
     // Windows API 接口 - Kernel32
     private interface Kernel32 extends Library {
@@ -187,11 +190,20 @@ public class RealUserSensor extends UserSensor {
      * 获取活动窗口信息
      */
     private WindowInfo getActiveWindowInfo() {
-        if (!IS_WINDOWS) {
-            logger.debug("Non-Windows platform detected, returning default window info");
+        if (IS_WINDOWS) {
+            return getActiveWindowInfoWindows();
+        } else if (IS_LINUX) {
+            return getActiveWindowInfoLinux();
+        } else {
+            logger.debug("Unsupported platform detected, returning default window info");
             return new WindowInfo("Unknown", "Unknown", AppType.UNKNOWN, false);
         }
+    }
 
+    /**
+     * Windows: 获取活动窗口信息
+     */
+    private WindowInfo getActiveWindowInfoWindows() {
         try {
             User32 user32 = User32.INSTANCE;
 
@@ -222,6 +234,109 @@ public class RealUserSensor extends UserSensor {
         } catch (Exception e) {
             logger.warn("Failed to get active window: {}", e.getMessage());
             return new WindowInfo("Unknown", "Unknown", AppType.UNKNOWN, false);
+        }
+    }
+
+    /**
+     * S5-1: Linux: 获取活动窗口信息
+     */
+    private WindowInfo getActiveWindowInfoLinux() {
+        try {
+            // 使用 xdotool 获取活动窗口信息
+            // 获取窗口标题
+            String title = executeCommand("xdotool", "getactivewindow", "getwindowname");
+            if (title == null || title.isEmpty()) {
+                title = "Unknown";
+            }
+
+            // 获取窗口 PID
+            String pidStr = executeCommand("xdotool", "getactivewindow", "getwindowpid");
+            String processName = "Unknown";
+            int pid = 0;
+
+            if (pidStr != null && !pidStr.isEmpty()) {
+                try {
+                    pid = Integer.parseInt(pidStr.trim());
+                    processName = getProcessNameLinux(pid);
+                } catch (NumberFormatException e) {
+                    logger.debug("Failed to parse PID: {}", pidStr);
+                }
+            }
+
+            // 分类应用类型
+            AppType appType = classifyApp(processName.toLowerCase(), title.toLowerCase());
+
+            return new WindowInfo(title.trim(), processName, appType, true);
+
+        } catch (Exception e) {
+            logger.warn("Failed to get active window on Linux: {}", e.getMessage());
+            return new WindowInfo("Unknown", "Unknown", AppType.UNKNOWN, false);
+        }
+    }
+
+    /**
+     * S5-1: Linux: 根据 PID 获取进程名
+     */
+    private String getProcessNameLinux(int pid) {
+        try {
+            // 读取 /proc/PID/comm 获取进程名
+            String commPath = "/proc/" + pid + "/comm";
+            String processName = readFile(commPath);
+            if (processName != null && !processName.isEmpty()) {
+                return processName.trim();
+            }
+
+            // 备用：读取 cmdline
+            String cmdlinePath = "/proc/" + pid + "/cmdline";
+            String cmdline = readFile(cmdlinePath);
+            if (cmdline != null && !cmdline.isEmpty()) {
+                // cmdline 以 null 字符分隔，取第一个（程序路径）
+                String[] parts = cmdline.split("\0");
+                if (parts.length > 0) {
+                    String fullPath = parts[0];
+                    // 提取文件名
+                    int lastSlash = fullPath.lastIndexOf('/');
+                    if (lastSlash >= 0 && lastSlash < fullPath.length() - 1) {
+                        return fullPath.substring(lastSlash + 1);
+                    }
+                    return fullPath;
+                }
+            }
+        } catch (Exception e) {
+            logger.debug("Failed to get process name for PID {}: {}", pid, e.getMessage());
+        }
+        return "Unknown";
+    }
+
+    /**
+     * 读取文件内容
+     */
+    private String readFile(String path) {
+        try {
+            java.nio.file.Path p = java.nio.file.Paths.get(path);
+            if (java.nio.file.Files.exists(p)) {
+                return java.nio.file.Files.readString(p);
+            }
+        } catch (Exception e) {
+            // Ignore
+        }
+        return null;
+    }
+
+    /**
+     * 执行系统命令
+     */
+    private String executeCommand(String... command) {
+        try {
+            ProcessBuilder pb = new ProcessBuilder(command);
+            pb.redirectErrorStream(true);
+            Process process = pb.start();
+            String output = new String(process.getInputStream().readAllBytes());
+            process.waitFor();
+            return output.trim();
+        } catch (Exception e) {
+            logger.debug("Command failed: {}", e.getMessage());
+            return null;
         }
     }
 
@@ -258,11 +373,19 @@ public class RealUserSensor extends UserSensor {
      * 获取用户存在状态
      */
     private PresenceStatus getPresenceStatus() {
-        if (!IS_WINDOWS) {
-            logger.debug("Non-Windows platform detected, returning UNKNOWN presence status");
+        if (IS_WINDOWS) {
+            return getPresenceStatusWindows();
+        } else if (IS_LINUX) {
+            return getPresenceStatusLinux();
+        } else {
             return PresenceStatus.UNKNOWN;
         }
+    }
 
+    /**
+     * Windows: 获取用户存在状态
+     */
+    private PresenceStatus getPresenceStatusWindows() {
         try {
             Kernel32 kernel32 = Kernel32.INSTANCE;
             LASTINPUTINFO lastInput = new LASTINPUTINFO();
@@ -283,6 +406,53 @@ public class RealUserSensor extends UserSensor {
             }
         } catch (Exception e) {
             logger.warn("Failed to get idle time: {}", e.getMessage());
+        }
+        return PresenceStatus.UNKNOWN;
+    }
+
+    /**
+     * S5-1: Linux: 获取用户存在状态
+     */
+    private PresenceStatus getPresenceStatusLinux() {
+        try {
+            // 方法1: 使用 xprintidle (如果安装了)
+            String idleMsStr = executeCommand("xprintidle");
+            if (idleMsStr != null && !idleMsStr.isEmpty()) {
+                try {
+                    long idleMs = Long.parseLong(idleMsStr.trim());
+                    long idleSeconds = idleMs / 1000;
+
+                    if (idleSeconds < 30) {
+                        return PresenceStatus.ACTIVE;
+                    } else if (idleSeconds < IDLE_THRESHOLD_SECONDS) {
+                        return PresenceStatus.IDLE;
+                    } else {
+                        return PresenceStatus.AWAY;
+                    }
+                } catch (NumberFormatException e) {
+                    logger.debug("Failed to parse idle time: {}", idleMsStr);
+                }
+            }
+
+            // 方法2: 读取 /proc/interrupts 或使用 xdotool
+            // 检查鼠标键盘活动
+            String windowName = executeCommand("xdotool", "getactivewindow", "getwindowname");
+            if (windowName != null && !windowName.isEmpty() && !windowName.equals("N/A")) {
+                // 窗口存在，说明用户最近有操作
+                return PresenceStatus.ACTIVE;
+            }
+
+            // 方法3: 基于 X11 screensaver
+            String screensaverStr = executeCommand("xscrnsaver", "1");
+            if (screensaverStr != null) {
+                // Screensaver active = away
+                if (screensaverStr.contains("on")) {
+                    return PresenceStatus.AWAY;
+                }
+            }
+
+        } catch (Exception e) {
+            logger.debug("Failed to get presence status on Linux: {}", e.getMessage());
         }
         return PresenceStatus.UNKNOWN;
     }

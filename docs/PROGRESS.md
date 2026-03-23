@@ -2,10 +2,10 @@
 
 ## 当前阶段
 
-**当前Sprint**: S3 - 情绪时间模式
+**当前Sprint**: S5 - 传感器系统加固
 **开始日期**: 2026-03-23
-**目标**: 建立情绪历史追踪，识别周内情绪模式
-**状态**: 进行中
+**目标**: 加固传感器系统，添加健康检查和跨平台支持
+**状态**: S5-1/2/3完成，S5-4待开始
 
 ---
 
@@ -144,6 +144,47 @@
 - S4-4:
   - 新增 `checkConflicts()` - 检测本地与远程冲突
   - 新增 `/api/sprite/backup/conflicts` 端点
+
+---
+
+## Sprint-S5: 传感器系统加固
+
+### 阶段目标
+1. S5-1: RealUserSensor Linux适配
+2. S5-2: RealEnvironmentSensor增强
+3. S5-3: 传感器健康检查
+4. S5-4: Mock数据清理
+
+### 任务状态
+
+| ID | 任务 | 状态 | 负责人 | 开始日期 | 完成日期 |
+|----|------|------|--------|----------|----------|
+| S5-1 | RealUserSensor Linux适配 | ✅ done | - | 2026-03-23 | 2026-03-23 |
+| S5-2 | RealEnvironmentSensor增强 | ✅ done | - | 2026-03-23 | 2026-03-23 |
+| S5-3 | 传感器健康检查 | ✅ done | - | 2026-03-23 | 2026-03-23 |
+| S5-4 | Mock数据清理 | todo | - | - | - |
+
+### 完成内容
+- S5-1:
+  - 增强 `RealUserSensor.java` - 添加Linux平台支持
+  - 添加 `IS_LINUX` 平台检测常量
+  - 实现 `getActiveWindowInfoLinux()` - 使用xdotool获取窗口信息
+  - 实现 `getProcessNameLinux()` - 读取 `/proc/PID/comm` 获取进程名
+  - 实现 `getPresenceStatusLinux()` - 使用xprintidle或xdotool检测空闲状态
+- S5-2:
+  - 增强 `RealEnvironmentSensor.java` - 增强上下文推断
+  - 更改时区为 Asia/Shanghai
+  - 分离工作日和周末/假期的上下文推断逻辑
+  - 实现 `inferWorkdayContext()` - 工作日模式识别
+  - 实现 `inferLeisureContext()` - 周末/假期模式识别
+  - 实现 `isHoliday()` - 中国法定节假日简单判断
+- S5-3:
+  - 增强 `HealthMonitorService.java` - 添加传感器健康检查
+  - 添加 `SensorHealth` 记录类型
+  - 实现 `checkSensorHealth()` - 检查所有传感器健康状态
+  - 实现 `updateSensorHealth()` - 更新单个传感器健康状态
+  - 实现 `triggerSensorAlert()` - 传感器告警触发
+  - 在 `HealthDetails` 中包含传感器健康信息
 
 ---
 

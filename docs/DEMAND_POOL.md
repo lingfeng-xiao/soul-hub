@@ -26,9 +26,9 @@
 | S4-2 | GitHub API集成 | ✅ done | Sprint-S4 |
 | S4-3 | 版本回溯支持 | ✅ done | Sprint-S4 |
 | S4-4 | 冲突处理 | ✅ done | Sprint-S4 |
-| S5-1 | RealUserSensor Linux适配 | todo | Sprint-S5 |
-| S5-2 | RealEnvironmentSensor增强 | todo | Sprint-S5 |
-| S5-3 | 传感器健康检查 | todo | Sprint-S5 |
+| S5-1 | RealUserSensor Linux适配 | ✅ done | Sprint-S5 |
+| S5-2 | RealEnvironmentSensor增强 | ✅ done | Sprint-S5 |
+| S5-3 | 传感器健康检查 | ✅ done | Sprint-S5 |
 | S5-4 | Mock数据清理 | todo | Sprint-S5 |
 
 ### P2 - 优化功能 (Nice to Have)
@@ -400,6 +400,95 @@
 **涉及文件**:
 - `GitHubBackupService.java` (增强 - checkConflicts方法)
 
+---
+
+### S5-1: RealUserSensor Linux适配
+
+**所属阶段**: S5 - 传感器系统加固
+**优先级**: 技术债
+**状态**: done
+
+**背景/目标**: RealUserSensor 仅支持Windows，需要适配Linux平台
+
+**实现内容**:
+1. 添加 `IS_LINUX` 平台检测常量
+2. 实现 `getActiveWindowInfoLinux()` - 使用xdotool获取窗口信息
+3. 实现 `getProcessNameLinux()` - 读取 `/proc/PID/comm` 获取进程名
+4. 实现 `getPresenceStatusLinux()` - 使用xprintidle或xdotool检测空闲状态
+
+**依赖**: 无
+**验收标准**: Linux环境下能正确获取活动窗口和用户空闲状态
+
+**涉及文件**:
+- `RealUserSensor.java` (修改 - 添加Linux支持)
+
+---
+
+### S5-2: RealEnvironmentSensor增强
+
+**所属阶段**: S5 - 传感器系统加固
+**优先级**: 技术债
+**状态**: done
+
+**背景/目标**: 增强RealEnvironmentSensor的上下文推断能力
+
+**实现内容**:
+1. 更改时区为 Asia/Shanghai
+2. 分离工作日和周末/假期的上下文推断逻辑
+3. 实现 `inferWorkdayContext()` - 工作日模式识别
+4. 实现 `inferLeisureContext()` - 周末/假期模式识别
+5. 实现 `isHoliday()` - 中国法定节假日简单判断
+
+**依赖**: 无
+**验收标准**: 能根据时间、星期和月份推断正确的上下文类型
+
+**涉及文件**:
+- `RealEnvironmentSensor.java` (修改 - 增强上下文推断)
+
+---
+
+### S5-3: 传感器健康检查
+
+**所属阶段**: S5 - 传感器系统加固
+**优先级**: 技术债
+**状态**: done
+
+**背景/目标**: 监控所有传感器健康状态，传感器无响应时触发告警
+
+**实现内容**:
+1. 在 `HealthMonitorService` 中添加传感器健康状态跟踪
+2. 实现 `checkSensorHealth()` - 检查所有传感器健康状态
+3. 实现 `updateSensorHealth()` - 更新单个传感器健康状态
+4. 实现 `triggerSensorAlert()` - 传感器告警触发
+5. 添加 `SensorHealth` 记录类型
+6. 在 `HealthDetails` 中包含传感器健康信息
+
+**依赖**: 无
+**验收标准**: 传感器超过60秒无响应时触发告警
+
+**涉及文件**:
+- `HealthMonitorService.java` (增强 - 添加传感器健康检查)
+
+---
+
+### S5-4: Mock数据清理
+
+**所属阶段**: S5 - 传感器系统加固
+**优先级**: 技术债
+**状态**: todo
+
+**背景/目标**: 清理代码中的Mock数据，使用真实传感器替代
+
+**实现内容**:
+1. 查找并替换所有Mock传感器实现
+2. 确保所有传感器使用真实数据采集
+3. 清理测试用的模拟数据
+
+**依赖**: S5-1, S5-2, S5-3
+**验收标准**: 所有传感器使用真实数据，无Mock数据残留
+
+**涉及文件**:
+- 待定
 
 ---
 
