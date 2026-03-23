@@ -2,6 +2,7 @@ package com.lingfeng.sprite.service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,7 @@ import com.lingfeng.sprite.llm.MinMaxLlmReasoner;
 import com.lingfeng.sprite.sensor.RealEnvironmentSensor;
 import com.lingfeng.sprite.sensor.RealPlatformSensor;
 import com.lingfeng.sprite.sensor.RealUserSensor;
+import com.lingfeng.sprite.action.ActionResult;
 import com.lingfeng.sprite.config.AppConfig;
 import com.lingfeng.sprite.llm.MinMaxConfig;
 import com.lingfeng.sprite.llm.MinMaxLlmReasoner;
@@ -172,15 +174,22 @@ public class SpriteService {
         // 应用进化结果
         evolutionService.applyEvolution(sprite);
 
-        // 执行推荐动作
-        if (result.actionRecommendation() != null
+        // 执行推荐动作（优先使用决策引擎生成的可执行动作）
+        if (result.decisionResult() != null && result.decisionResult().hasActions()) {
+            // 使用 DecisionEngine 生成的可执行 ToolCall
+            for (var toolCall : result.decisionResult().actions()) {
+                ActionResult execResult = actionExecutor.executeTool(
+                    toolCall.tool(),
+                    buildActionContext(toolCall.params(), result)
+                );
+                logger.info("Executed tool '{}': success={}, message={}",
+                    toolCall.tool(), execResult.success(), execResult.message());
+            }
+        } else if (result.actionRecommendation() != null
                 && !result.actionRecommendation().recommendations().isEmpty()) {
+            // 降级：使用旧的字符串格式
             for (String action : result.actionRecommendation().recommendations()) {
-                actionExecutor.execute(action, java.util.Map.of(
-                        "perception", result.perception(),
-                        "reflection", result.reflection(),
-                        "timestamp", Instant.now()
-                ));
+                actionExecutor.execute(action, buildActionContext(null, result));
             }
         }
 
@@ -195,6 +204,26 @@ public class SpriteService {
 
         logger.debug("Cognition cycle completed");
         return result;
+    }
+
+    /**
+     * 构建动作执行上下文
+     */
+    private Map<String, Object> buildActionContext(
+            Map<String, Object> toolParams,
+            CognitionController.CognitionResult result
+    ) {
+        Map<String, Object> context = new java.util.concurrent.ConcurrentHashMap<>();
+        context.put("perception", result.perception());
+        context.put("reflection", result.reflection());
+        context.put("timestamp", Instant.now());
+
+        // 如果有工具参数，合并到上下文中
+        if (toolParams != null) {
+            context.putAll(toolParams);
+        }
+
+        return context;
     }
 
     /**

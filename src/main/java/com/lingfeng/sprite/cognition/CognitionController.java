@@ -30,6 +30,7 @@ public class CognitionController {
     private final PerceptionFusion perceptionFusion = new PerceptionFusion();
     private final WorldBuilder worldBuilder = new WorldBuilder();
     private final SelfReflector selfReflector = new SelfReflector();
+    private final DecisionEngine decisionEngine;
     private Instant lastCycleTime = Instant.now();
     private int cycleCount = 0;
 
@@ -45,6 +46,7 @@ public class CognitionController {
         this.selfModel = initialSelfModel;
         this.worldModel = initialWorldModel;
         this.reasoningEngine = reasoningEngine;
+        this.decisionEngine = new DecisionEngine(initialWorldModel);
     }
 
     /**
@@ -116,7 +118,14 @@ public class CognitionController {
             pipelineOutput.salienceScore().overall()
         ));
 
-        // 9. 生成行动建议
+        // 9. 生成行动建议（使用决策引擎）
+        DecisionEngine.DecisionResult decisionResult = decisionEngine.decide(
+            reasoningResult,
+            pipelineOutput.salienceScore(),
+            selfModel
+        );
+
+        // 同时保留旧的 ActionRecommendation 用于日志
         ActionRecommendation actionRecommendation = generateActionRecommendation(
             fused,
             reflection,
@@ -135,7 +144,8 @@ public class CognitionController {
             reasoningResult,
             actionRecommendation,
             pipelineOutput.salienceScore(),
-            pipelineOutput.isSignificant()
+            pipelineOutput.isSignificant(),
+            decisionResult
         );
     }
 
@@ -261,6 +271,7 @@ public class CognitionController {
         ReasoningEngine.ReasoningResult reasoningResult,
         ActionRecommendation actionRecommendation,
         PerceptionSystem.SalienceScore salienceScore,
-        boolean isSignificant
+        boolean isSignificant,
+        DecisionEngine.DecisionResult decisionResult
     ) {}
 }
