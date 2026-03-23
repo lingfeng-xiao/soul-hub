@@ -77,6 +77,57 @@ public class DecisionEngine {
             String reasoning
     ) {}
 
+    /**
+     * S6-2: 置信度等级枚举
+     */
+    public enum ConfidenceLevel {
+        HIGH("高置信度", 0.8f),
+        MEDIUM("中置信度", 0.5f),
+        LOW("低置信度", 0.3f),
+        UNKNOWN("未知置信度", 0.0f);
+
+        private final String description;
+        private final float threshold;
+
+        ConfidenceLevel(String description, float threshold) {
+            this.description = description;
+            this.threshold = threshold;
+        }
+
+        public String description() { return description; }
+        public float threshold() { return threshold; }
+
+        public static ConfidenceLevel fromScore(float score) {
+            if (score >= 0.8f) return HIGH;
+            if (score >= 0.5f) return MEDIUM;
+            if (score >= 0.3f) return LOW;
+            return UNKNOWN;
+        }
+    }
+
+    /**
+     * S6-2: 置信度摘要
+     */
+    public record ConfidenceSummary(
+            float overallConfidence,
+            ConfidenceLevel level,
+            float reasoningConfidence,     // 推理置信度
+            float memoryConfidence,        // 记忆置信度
+            float emotionConfidence,       // 情绪置信度
+            float habitConfidence,         // 习惯置信度
+            String reasoning
+    ) {}
+
+    /**
+     * S6-2: 决策来源置信度
+     */
+    public record SourceConfidence(
+            String source,
+            float confidence,
+            ConfidenceLevel level,
+            String explanation
+    ) {}
+
     // 意图类型 → 动作类型的映射规则
     private static final Map<ReasoningEngine.ReasoningType, String> INTENT_ACTION_MAP = new ConcurrentHashMap<>();
     // 动作优先级
@@ -111,6 +162,11 @@ public class DecisionEngine {
     // S6-1: 维度权重配置
     private final Map<DecisionDimension, Float> dimensionWeights = new ConcurrentHashMap<>();
 
+    // S6-2: 置信度阈值配置
+    private float highConfidenceThreshold = 0.8f;
+    private float mediumConfidenceThreshold = 0.5f;
+    private float lowConfidenceThreshold = 0.3f;
+
     public DecisionEngine(WorldModel.World worldModel) {
         this.worldModel = worldModel;
         // 初始化默认权重
@@ -142,6 +198,149 @@ public class DecisionEngine {
         for (DecisionDimension dim : DecisionDimension.values()) {
             dimensionWeights.put(dim, dim.defaultWeight());
         }
+    }
+
+    /**
+     * S6-2: 获取置信度阈值
+     */
+    public float[] getConfidenceThresholds() {
+        return new float[]{highConfidenceThreshold, mediumConfidenceThreshold, lowConfidenceThreshold};
+    }
+
+    /**
+     * S6-2: 设置置信度阈值
+     */
+    public void setConfidenceThresholds(float high, float medium, float low) {
+        if (high >= medium && medium >= low) {
+            this.highConfidenceThreshold = high;
+            this.mediumConfidenceThreshold = medium;
+            this.lowConfidenceThreshold = low;
+        }
+    }
+
+    /**
+     * S6-2: 计算置信度摘要
+     */
+    public ConfidenceSummary calculateConfidenceSummary(
+            ReasoningEngine.ReasoningResult reasoningResult,
+            MemoryRetrievalService.RetrievalContext retrievalContext,
+            MultiDimensionalEvaluation evaluation
+    ) {
+        // 1. 计算推理置信度
+        float reasoningConfidence = calculateReasoningConfidence(reasoningResult);
+
+        // 2. 计算记忆置信度
+        float memoryConfidence = calculateMemoryConfidence(retrievalContext);
+
+        // 3. 计算情绪置信度
+        float emotionConfidence = calculateEmotionConfidence();
+
+        // 4. 计算习惯置信度
+        float habitConfidence = calculateHabitConfidence(retrievalContext);
+
+        // 5. 综合计算整体置信度（加权平均）
+        float overallConfidence =
+                reasoningConfidence * 0.35f +
+                memoryConfidence * 0.30f +
+                emotionConfidence * 0.20f +
+                habitConfidence * 0.15f;
+
+        // 6. 确定置信度等级
+        ConfidenceLevel level;
+        if (overallConfidence >= highConfidenceThreshold) {
+            level = ConfidenceLevel.HIGH;
+        } else if (overallConfidence >= mediumConfidenceThreshold) {
+            level = ConfidenceLevel.MEDIUM;
+        } else if (overallConfidence >= lowConfidenceThreshold) {
+            level = ConfidenceLevel.LOW;
+        } else {
+            level = ConfidenceLevel.UNKNOWN;
+        }
+
+        String reasoning = String.format(
+                "推理=%.2f, 记忆=%.2f, 情绪=%.2f, 习惯=%.2f, 综合=%.2f(%s)",
+                reasoningConfidence, memoryConfidence, emotionConfidence, habitConfidence,
+                overallConfidence, level.description()
+        );
+
+        return new ConfidenceSummary(
+                overallConfidence,
+                level,
+                reasoningConfidence,
+                memoryConfidence,
+                emotionConfidence,
+                habitConfidence,
+                reasoning
+        );
+    }
+
+    /**
+     * S6-2: 计算推理置信度
+     */
+    private float calculateReasoningConfidence(ReasoningEngine.ReasoningResult reasoningResult) {
+        if (reasoningResult == null || !reasoningResult.hasLlmSupport()) {
+            return 0.0f;
+        }
+
+        float totalConfidence = 0f;
+        int count = 0;
+
+        for (ReasoningEngine.ReasoningOutput output : reasoningResult.outputs()) {
+            totalConfidence += output.confidence();
+            count++;
+        }
+
+        return count > 0 ? totalConfidence / count : 0.0f;
+    }
+
+    /**
+     * S6-2: 计算记忆置信度
+     */
+    private float calculateMemoryConfidence(MemoryRetrievalService.RetrievalContext retrievalContext) {
+        if (retrievalContext == null || retrievalContext.isEmpty()) {
+            return 0.0f;
+        }
+
+        // 记忆检索的总体相关性作为置信度
+        return retrievalContext.overallRelevance();
+    }
+
+    /**
+     * S6-2: 计算情绪置信度
+     */
+    private float calculateEmotionConfidence() {
+        if (worldModel == null || worldModel.owner() == null
+                || worldModel.owner().emotionalState() == null) {
+            return 0.0f;
+        }
+
+        // 情绪置信度基于情绪强度和一致性
+        float intensity = worldModel.owner().emotionalState().intensity();
+        return Math.min(1.0f, intensity * 1.2f); // 强度高的情绪更可信
+    }
+
+    /**
+     * S6-2: 计算习惯置信度
+     */
+    private float calculateHabitConfidence(MemoryRetrievalService.RetrievalContext retrievalContext) {
+        if (retrievalContext == null || retrievalContext.isEmpty()) {
+            return 0.0f;
+        }
+
+        // 如果检索到感知模式（习惯），给予较高置信度
+        if (!retrievalContext.relevantPatterns().isEmpty()) {
+            return 0.7f + (retrievalContext.overallRelevance() * 0.3f);
+        }
+
+        return 0.0f;
+    }
+
+    /**
+     * S6-2: 置信度传播算法 - 将子维度置信度传播到父维度
+     */
+    public float propagateConfidence(float childConfidence, float parentWeight) {
+        // 简单的加权传播
+        return childConfidence * parentWeight;
     }
 
     /**
@@ -373,7 +572,10 @@ public class DecisionEngine {
         // S6-1: 计算多维度评估结果
         MultiDimensionalEvaluation evaluation = evaluateMultiDimensional(salienceScore, retrievalContext);
 
-        return new DecisionResult(actions, buildReason(actions, salienceScore, reasoningResult, retrievalContext), evaluation);
+        // S6-2: 计算置信度摘要
+        ConfidenceSummary confidence = calculateConfidenceSummary(reasoningResult, retrievalContext, evaluation);
+
+        return new DecisionResult(actions, buildReason(actions, salienceScore, reasoningResult, retrievalContext), evaluation, confidence);
     }
 
     /**
@@ -531,7 +733,8 @@ public class DecisionEngine {
     public record DecisionResult(
             List<ToolCall> actions,
             String reason,
-            MultiDimensionalEvaluation evaluation
+            MultiDimensionalEvaluation evaluation,
+            ConfidenceSummary confidence
     ) {
         public boolean hasActions() {
             return actions != null && !actions.isEmpty();
@@ -542,6 +745,13 @@ public class DecisionEngine {
          */
         public float getOverallScore() {
             return evaluation != null ? evaluation.overallScore() : 0f;
+        }
+
+        /**
+         * 获取决策置信度
+         */
+        public float getConfidence() {
+            return confidence != null ? confidence.overallConfidence() : 0f;
         }
     }
 
