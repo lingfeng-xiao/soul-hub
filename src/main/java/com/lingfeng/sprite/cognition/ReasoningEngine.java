@@ -63,7 +63,8 @@ public class ReasoningEngine {
                 context.situation(),
                 context.recentActions(),
                 context.ownerMood(),
-                context.timeContext()
+                context.timeContext(),
+                context.memoryHighlights()
             ));
 
             CompletableFuture<CausalChain> causalFuture = llmReasoner.reasonCausal(new CausalPrompt(
@@ -188,11 +189,22 @@ public class ReasoningEngine {
         List<String> recentActions,
         String ownerMood,
         String timeContext,
-        List<String> observations
+        List<String> observations,
+        String memoryHighlights
     ) {
         public ReasoningContext {
             recentActions = recentActions != null ? List.copyOf(recentActions) : List.of();
             observations = observations != null ? List.copyOf(observations) : List.of();
+        }
+
+        public ReasoningContext(
+            String situation,
+            List<String> recentActions,
+            String ownerMood,
+            String timeContext,
+            List<String> observations
+        ) {
+            this(situation, recentActions, ownerMood, timeContext, observations, "");
         }
     }
 
@@ -239,7 +251,8 @@ public class ReasoningEngine {
         String situation,
         List<String> recentActions,
         String ownerMood,
-        String timeContext
+        String timeContext,
+        String memoryHighlights
     ) {}
 
     public record Intent(

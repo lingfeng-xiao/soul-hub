@@ -53,18 +53,21 @@ public class MinMaxLlmReasoner implements ReasoningEngine.LlmReasoner {
                 2. 情绪状态 - 情绪影响表达方式和真实需求
                 3. 时间上下文 - 不同时间有不同需求模式
                 4. 情境连贯性 - 当前情境与近期行为的关联
+                5. 历史记忆 - 过去的类似情境和成功经验
 
                 ## 输入信息
                 - 当前情境：%s
                 - 近期行为（共%d条）：%s
                 - 主人情绪：%s
                 - 时间上下文：%s
+                %s
 
                 ## 分析要求
                 1. 先识别表面意图（直接表达的行为）
                 2. 再分析深层意图（情绪、习惯、潜在需求）
-                3. 考虑时间因素（早中晚、工作日/周末）
-                4. 给出置信度（考虑信息完整度）
+                3. 结合历史记忆分析（过去的类似情境）
+                4. 考虑时间因素（早中晚、工作日/周末）
+                5. 给出置信度（考虑信息完整度）
 
                 ## 输出格式（严格JSON）
                 {
@@ -77,7 +80,10 @@ public class MinMaxLlmReasoner implements ReasoningEngine.LlmReasoner {
                 prompt.recentActions().size(),
                 String.join("、", prompt.recentActions()),
                 prompt.ownerMood(),
-                prompt.timeContext()
+                prompt.timeContext(),
+                prompt.memoryHighlights() != null && !prompt.memoryHighlights().isEmpty()
+                    ? "- 相关记忆上下文：\n" + prompt.memoryHighlights()
+                    : "- 相关记忆：无"
             );
 
             String response = callMinMaxWithRetry(systemPrompt, 2);

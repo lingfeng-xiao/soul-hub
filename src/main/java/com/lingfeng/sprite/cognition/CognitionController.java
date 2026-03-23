@@ -31,6 +31,7 @@ public class CognitionController {
     private final WorldBuilder worldBuilder = new WorldBuilder();
     private final SelfReflector selfReflector = new SelfReflector();
     private final DecisionEngine decisionEngine;
+    private final MemoryRetrievalService memoryRetrievalService;
     private Instant lastCycleTime = Instant.now();
     private int cycleCount = 0;
 
@@ -47,6 +48,7 @@ public class CognitionController {
         this.worldModel = initialWorldModel;
         this.reasoningEngine = reasoningEngine;
         this.decisionEngine = new DecisionEngine(initialWorldModel);
+        this.memoryRetrievalService = new MemoryRetrievalService(memory);
     }
 
     /**
@@ -98,12 +100,21 @@ public class CognitionController {
                 .map(s -> s.content().toString())
                 .toList();
 
+            // 7a. 检索相关长期记忆
+            WorldModel.Context worldContext = worldModel.context();
+            OwnerModel.Mood ownerMood = worldModel.owner().emotionalState() != null ?
+                worldModel.owner().emotionalState().currentMood() : null;
+            MemoryRetrievalService.RetrievalContext retrievalContext =
+                memoryRetrievalService.retrieve(worldContext, ownerMood);
+            String memoryHighlights = memoryRetrievalService.buildMemoryContextString(retrievalContext);
+
             ReasoningEngine.ReasoningContext reasoningContext = new ReasoningEngine.ReasoningContext(
                 fused.generateFeelings().isEmpty() ? "未知情境" : fused.generateFeelings().get(0),
                 new ArrayList<>(recentActions),
                 mood,
                 java.time.LocalDateTime.now().toString(),
-                new ArrayList<>(observations)
+                new ArrayList<>(observations),
+                memoryHighlights
             );
             reasoningResult = reasoningEngine.reason(reasoningContext);
         }
