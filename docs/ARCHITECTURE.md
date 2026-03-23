@@ -1156,7 +1156,28 @@ src/main/java/com/lingfeng/sprite/
 ├── sensor/
 │   ├── RealPlatformSensor.java      # OSHI-based system metrics
 │   ├── RealUserSensor.java          # Window tracking via JNA
-│   └── RealEnvironmentSensor.java   # Time-based context
+│   ├── RealEnvironmentSensor.java   # Time-based context
+│   ├── AudioSensor.java             # S9: Audio context detection
+│   ├── LocationSensor.java         # S9: Location inference
+│   └── DeviceStateSensor.java      # S9: Device state monitoring
+│
+├── service/
+│   ├── SpriteService.java            # Spring lifecycle management
+│   ├── ConversationService.java     # Chat handling with LLM
+│   ├── UnifiedContextService.java   # Context bridge for conversations
+│   ├── ProactiveService.java        # Idle/mood-based outreach
+│   ├── ActionExecutor.java          # Plugin-based action execution
+│   ├── MemoryConsolidationService.java
+│   ├── EvolutionService.java
+│   ├── WebhookService.java          # S11: Webhook integration
+│   ├── ExternalApiAdapterService.java # S11: External API adapter
+│   ├── HotReloadConfigService.java  # S11: Config hot reload
+│   ├── PerformanceMonitorService.java # S11: Performance monitoring
+│   ├── ApiDocService.java          # S11: API documentation
+│   ├── CognitionDashboardService.java # S10: Cognition visualization
+│   ├── MemoryVisualizationService.java # S10: Memory visualization
+│   ├── EvolutionDashboardService.java # S10: Evolution history
+│   └── OwnerEmotionDashboardService.java # S10: Emotion history
 │
 ├── llm/
 │   ├── MinMaxLlmReasoner.java       # MinMax API integration
@@ -1170,7 +1191,14 @@ src/main/java/com/lingfeng/sprite/
 │   ├── ActionResult.java            # Execution result
 │   └── Actions/
 │       ├── LogAction.java
-│       └── NotifyAction.java
+│       ├── NotifyAction.java
+│       ├── CalculatorAction.java
+│       ├── SearchFilesAction.java
+│       ├── RememberAction.java
+│       ├── RecallMemoryAction.java
+│       ├── EmailAction.java
+│       ├── CalendarAction.java
+│       └── KnowledgeBaseAction.java
 │
 ├── event/
 │   └── SpriteEventListener.java      # Spring event handling
