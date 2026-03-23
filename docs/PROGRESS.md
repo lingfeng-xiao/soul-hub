@@ -109,12 +109,18 @@
 
 ### 阶段目标
 1. S4-1: 定时导出任务
+2. S4-2: GitHub API集成
+3. S4-3: 版本回溯支持
+4. S4-4: 冲突处理
 
 ### 任务状态
 
 | ID | 任务 | 状态 | 负责人 | 开始日期 | 完成日期 |
 |----|------|------|--------|----------|----------|
 | S4-1 | 定时导出任务 | ✅ done | - | 2026-03-23 | 2026-03-23 |
+| S4-2 | GitHub API集成 | ✅ done | - | 2026-03-23 | 2026-03-23 |
+| S4-3 | 版本回溯支持 | ✅ done | - | 2026-03-23 | 2026-03-23 |
+| S4-4 | 冲突处理 | ✅ done | - | 2026-03-23 | 2026-03-23 |
 
 ### 完成内容
 - S4-1:
@@ -126,6 +132,18 @@
   - 新增 `/api/sprite/backup/index` 端点 - 获取备份索引
   - 新增 `/api/sprite/backup/snapshot` 端点 - 获取记忆快照
   - 新增 `/api/sprite/backup/status` 端点 - 获取备份状态
+- S4-2:
+  - 增强 `GitHubBackupService.java` - 添加版本回溯和比较功能
+  - 新增 `listBackups()` - 获取可用备份列表
+  - 新增 `compareBackups()` - 比较两个备份版本
+  - 新增 `/api/sprite/backup/list` 端点
+  - 新增 `/api/sprite/backup/compare` 端点
+- S4-3:
+  - 新增 `restoreFromBackup()` - 从备份恢复记忆
+  - 新增 `/api/sprite/backup/restore` 端点
+- S4-4:
+  - 新增 `checkConflicts()` - 检测本地与远程冲突
+  - 新增 `/api/sprite/backup/conflicts` 端点
 
 ---
 

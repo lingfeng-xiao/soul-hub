@@ -256,6 +256,45 @@ public class SpriteController {
     }
 
     /**
+     * S4-2: GET /api/sprite/backup/list - 获取可用备份列表
+     */
+    @GetMapping("/backup/list")
+    public ResponseEntity<GitHubBackupService.BackupListResult> listBackups() {
+        GitHubBackupService.BackupListResult result = gitHubBackupService.listBackups();
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * S4-2: POST /api/sprite/backup/restore - 从备份恢复
+     */
+    @PostMapping("/backup/restore")
+    public ResponseEntity<GitHubBackupService.RestoreResult> restoreFromBackup(
+            @RequestParam String timestamp) {
+        GitHubBackupService.RestoreResult result = gitHubBackupService.restoreFromBackup(timestamp);
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * S4-2: GET /api/sprite/backup/compare - 比较两个备份版本
+     */
+    @GetMapping("/backup/compare")
+    public ResponseEntity<GitHubBackupService.DiffResult> compareBackups(
+            @RequestParam String timestamp1,
+            @RequestParam String timestamp2) {
+        GitHubBackupService.DiffResult result = gitHubBackupService.compareBackups(timestamp1, timestamp2);
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * S4-3: GET /api/sprite/backup/conflicts - 检测冲突
+     */
+    @GetMapping("/backup/conflicts")
+    public ResponseEntity<GitHubBackupService.ConflictCheckResult> checkConflicts() {
+        GitHubBackupService.ConflictCheckResult result = gitHubBackupService.checkConflicts();
+        return ResponseEntity.ok(result);
+    }
+
+    /**
      * 备份状态
      */
     public record BackupStatus(

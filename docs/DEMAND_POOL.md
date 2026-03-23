@@ -23,9 +23,9 @@
 | S3-3 | 时间模式预测 | ✅ done | Sprint-S3 |
 | S3-4 | 时机优化 | ✅ done | Sprint-S3 |
 | S4-1 | 定时导出任务 | ✅ done | Sprint-S4 |
-| S4-2 | GitHub API集成 | todo | Sprint-S4 |
-| S4-3 | 版本回溯支持 | todo | Sprint-S4 |
-| S4-4 | 冲突处理 | todo | Sprint-S4 |
+| S4-2 | GitHub API集成 | ✅ done | Sprint-S4 |
+| S4-3 | 版本回溯支持 | ✅ done | Sprint-S4 |
+| S4-4 | 冲突处理 | ✅ done | Sprint-S4 |
 | S5-1 | RealUserSensor Linux适配 | todo | Sprint-S5 |
 | S5-2 | RealEnvironmentSensor增强 | todo | Sprint-S5 |
 | S5-3 | 传感器健康检查 | todo | Sprint-S5 |
@@ -337,6 +337,69 @@
 **涉及文件**:
 - `GitHubBackupService.java` (新增 - GitHub备份服务)
 - `SpriteController.java` (修改 - 添加备份API端点)
+
+---
+
+### S4-2: GitHub API集成
+
+**所属阶段**: S4 - 记忆GitHub持久化
+**优先级**: P1
+**状态**: done
+
+**背景/目标**: 完善GitHub API集成，支持更多操作
+
+**实现内容**:
+1. 实现版本回溯功能 - 从指定备份恢复记忆
+2. 获取可用备份版本列表
+3. 比较两个备份版本的差异
+
+**依赖**: S4-1
+**验收标准**: 能列出备份版本并进行比较
+
+**涉及文件**:
+- `GitHubBackupService.java` (增强 - 添加版本回溯API)
+- `SpriteController.java` (修改 - 添加restore和compare端点)
+
+---
+
+### S4-3: 版本回溯支持
+
+**所属阶段**: S4 - 记忆GitHub持久化
+**优先级**: P1
+**状态**: done
+
+**背景/目标**: 支持从历史备份恢复记忆
+
+**实现内容**:
+1. 从指定时间戳的备份恢复记忆
+2. 恢复结果反馈
+
+**依赖**: S4-2
+**验收标准**: 能从历史备份恢复记忆
+
+**涉及文件**:
+- `GitHubBackupService.java` (增强 - restoreFromBackup方法)
+
+---
+
+### S4-4: 冲突处理
+
+**所属阶段**: S4 - 记忆GitHub持久化
+**优先级**: P1
+**状态**: done
+
+**背景/目标**: 检测本地与远程备份的冲突
+
+**实现内容**:
+1. 检测本地保存但尚未备份的更改
+2. 提供冲突信息（本地/远程时间对比）
+
+**依赖**: S4-1
+**验收标准**: 能检测并报告冲突
+
+**涉及文件**:
+- `GitHubBackupService.java` (增强 - checkConflicts方法)
+
 
 ---
 

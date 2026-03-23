@@ -13,7 +13,7 @@
 | S1 | 可靠性加固 | **✅ 已完成** |
 | S2 | 主人反馈学习 | **✅ 已完成** |
 | S3 | 情绪时间模式 | **✅ 已完成** |
-| S4 | 记忆GitHub持久化 | **进行中** |
+| S4 | 记忆GitHub持久化 | **✅ 已完成** |
 | S5 | 传感器系统加固 | 待开始 |
 | S6 | 决策引擎增强 | 待开始 |
 | S7 | 动作系统扩展 | 待开始 |
@@ -21,7 +21,7 @@
 | S9 | 感知系统扩展 | 待开始 |
 | S10 | 可观测性建设 | 待开始 |
 
-**整体进度**: 75% (S1完成 + S2完成 + S3完成 + S4-1完成)
+**整体进度**: 80% (S1完成 + S2完成 + S3完成 + S4全部完成)
 
 ---
 
@@ -115,6 +115,21 @@ S2-1 (主人响应追踪)、S2-2 (交互偏好学习)、S2-3 (反馈调整机制
 - 新增 `/api/sprite/backup/snapshot` 端点 - 获取记忆快照
 - 新增 `/api/sprite/backup/status` 端点 - 获取备份状态
 
+### S4-2: GitHub API集成 ✅
+- 增强 `GitHubBackupService.java` - 添加版本回溯和比较功能
+- 新增 `listBackups()` - 获取可用备份列表
+- 新增 `compareBackups()` - 比较两个备份版本
+- 新增 `/api/sprite/backup/list` 端点
+- 新增 `/api/sprite/backup/compare` 端点
+
+### S4-3: 版本回溯支持 ✅
+- 新增 `restoreFromBackup()` - 从备份恢复记忆
+- 新增 `/api/sprite/backup/restore` 端点
+
+### S4-4: 冲突处理 ✅
+- 新增 `checkConflicts()` - 检测本地与远程冲突
+- 新增 `/api/sprite/backup/conflicts` 端点
+
 
 ---
 
@@ -138,8 +153,8 @@ S2-1 (主人响应追踪)、S2-2 (交互偏好学习)、S2-3 (反馈调整机制
 
 ## 下一步最优先
 
-1. **S4-1: 定时导出任务** - P1优先级，GitHub持久化
-2. **S5-1: RealUserSensor Linux适配** - 技术债优先级，传感器系统加固
+1. **S5-1: RealUserSensor Linux适配** - 技术债优先级，传感器系统加固
+2. **S6-1: 多维度决策** - 优化优先级，决策引擎增强
 
 ---
 

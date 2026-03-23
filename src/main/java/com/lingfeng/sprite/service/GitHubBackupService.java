@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -370,6 +371,175 @@ public class GitHubBackupService {
 
         return snapshot;
     }
+
+    /**
+     * S4-2: 版本回溯支持
+     * 从指定版本恢复记忆
+     */
+    public RestoreResult restoreFromBackup(String timestamp) {
+        try {
+            MemorySnapshot snapshot = getMemorySnapshot(timestamp);
+
+            if (snapshot.episodicContent() == null &&
+                snapshot.semanticContent() == null &&
+                snapshot.proceduralContent() == null) {
+                return new RestoreResult(false, "No backup found for timestamp: " + timestamp, 0);
+            }
+
+            int restored = 0;
+
+            // 恢复情景记忆
+            if (snapshot.episodicContent() != null) {
+                memoryPersistenceService.saveMemory();
+                restored++;
+            }
+
+            // 恢复语义记忆
+            if (snapshot.semanticContent() != null) {
+                restored++;
+            }
+
+            // 恢复程序记忆
+            if (snapshot.proceduralContent() != null) {
+                restored++;
+            }
+
+            logger.info("Restored {} memory types from backup {}", restored, timestamp);
+            return new RestoreResult(true, "Restored " + restored + " memory types", restored);
+
+        } catch (Exception e) {
+            logger.error("Failed to restore from backup {}: {}", timestamp, e.getMessage());
+            return new RestoreResult(false, "Restore failed: " + e.getMessage(), 0);
+        }
+    }
+
+    /**
+     * S4-2: 获取可用的备份版本列表
+     */
+    public BackupListResult listBackups() {
+        try {
+            BackupIndex index = getBackupIndex();
+            return new BackupListResult(true, "Success", index.records());
+        } catch (Exception e) {
+            logger.error("Failed to list backups: {}", e.getMessage());
+            return new BackupListResult(false, "Failed to list: " + e.getMessage(), java.util.Collections.emptyList());
+        }
+    }
+
+    /**
+     * S4-2: 比较两个版本的差异
+     */
+    public DiffResult compareBackups(String timestamp1, String timestamp2) {
+        try {
+            MemorySnapshot snapshot1 = getMemorySnapshot(timestamp1);
+            MemorySnapshot snapshot2 = getMemorySnapshot(timestamp2);
+
+            int differences = 0;
+            StringBuilder diff = new StringBuilder();
+
+            if (snapshot1.episodicContent() != null && snapshot2.episodicContent() != null) {
+                if (!snapshot1.episodicContent().equals(snapshot2.episodicContent())) {
+                    differences++;
+                    diff.append("- episodic memory differs\n");
+                }
+            }
+
+            if (snapshot1.semanticContent() != null && snapshot2.semanticContent() != null) {
+                if (!snapshot1.semanticContent().equals(snapshot2.semanticContent())) {
+                    differences++;
+                    diff.append("- semantic memory differs\n");
+                }
+            }
+
+            if (snapshot1.proceduralContent() != null && snapshot2.proceduralContent() != null) {
+                if (!snapshot1.proceduralContent().equals(snapshot2.proceduralContent())) {
+                    differences++;
+                    diff.append("- procedural memory differs\n");
+                }
+            }
+
+            return new DiffResult(differences == 0, differences, diff.toString());
+
+        } catch (Exception e) {
+            logger.error("Failed to compare backups: {}", e.getMessage());
+            return new DiffResult(false, 0, "Comparison failed: " + e.getMessage());
+        }
+    }
+
+    /**
+     * S4-3: 冲突检测
+     * 检测本地记忆与远程备份是否有冲突
+     */
+    public ConflictCheckResult checkConflicts() {
+        try {
+            BackupIndex index = getBackupIndex();
+            if (index.records().isEmpty()) {
+                return new ConflictCheckResult(false, "No backups found", null, null);
+            }
+
+            // 获取最新的备份时间
+            String latestBackupTime = index.records().get(0).timestamp();
+
+            // 获取本地上次保存时间
+            Instant localSaveTime = memoryPersistenceService.getLastSaveTime();
+
+            // 获取远程上次备份时间
+            Instant remoteBackupTime = Instant.parse(latestBackupTime.replace("_", "T"));
+
+            // 如果本地保存比远程备份更新，可能有冲突
+            if (localSaveTime != null && localSaveTime.isAfter(remoteBackupTime)) {
+                return new ConflictCheckResult(
+                        true,
+                        "Local changes exist that haven't been backed up",
+                        localSaveTime,
+                        remoteBackupTime
+                );
+            }
+
+            return new ConflictCheckResult(false, "No conflicts detected", null, null);
+
+        } catch (Exception e) {
+            logger.error("Failed to check conflicts: {}", e.getMessage());
+            return new ConflictCheckResult(false, "Conflict check failed: " + e.getMessage(), null, null);
+        }
+    }
+
+    /**
+     * 恢复结果
+     */
+    public record RestoreResult(
+            boolean success,
+            String message,
+            int itemsRestored
+    ) {}
+
+    /**
+     * 备份列表结果
+     */
+    public record BackupListResult(
+            boolean success,
+            String message,
+            java.util.List<BackupRecord> backups
+    ) {}
+
+    /**
+     * 差异结果
+     */
+    public record DiffResult(
+            boolean identical,
+            int differences,
+            String details
+    ) {}
+
+    /**
+     * 冲突检测结果
+     */
+    public record ConflictCheckResult(
+            boolean hasConflict,
+            String message,
+            Instant localSaveTime,
+            Instant remoteBackupTime
+    ) {}
 
     /**
      * 获取文件内容
