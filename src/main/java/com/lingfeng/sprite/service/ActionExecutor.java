@@ -3,6 +3,9 @@ package com.lingfeng.sprite.service;
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,9 +36,11 @@ public class ActionExecutor {
 
     private final Map<String, ActionPlugin> actionPlugins;
     private final Memory memory;
+    private final ExecutorService asyncExecutor;
 
     public ActionExecutor(Memory memory) {
         this.memory = memory;
+        this.asyncExecutor = Executors.newCachedThreadPool();
 
         // 注册内置动作
         this.actionPlugins = new ConcurrentHashMap<>();
@@ -170,5 +175,53 @@ public class ActionExecutor {
             logger.error("Error executing tool '{}': {}", toolName, e.getMessage());
             return ActionResult.failure(e.getMessage());
         }
+    }
+
+    /**
+     * S16-4: 异步执行动作
+     *
+     * 动作在后台线程执行，完成后通过CompletableFuture通知
+     *
+     * @param toolName 工具名称
+     * @param params 参数
+     * @return 包含执行结果的CompletableFuture
+     */
+    public CompletableFuture<ActionResult> executeAsync(String toolName, Map<String, Object> params) {
+        CompletableFuture<ActionResult> future = new CompletableFuture<>();
+
+        asyncExecutor.submit(() -> {
+            try {
+                ActionResult result = executeTool(toolName, params);
+                future.complete(result);
+            } catch (Exception e) {
+                logger.error("Error in async execution of tool '{}': {}", toolName, e.getMessage());
+                future.complete(ActionResult.failure(e.getMessage()));
+            }
+        });
+
+        return future;
+    }
+
+    /**
+     * S16-4: 异步执行动作字符串
+     *
+     * @param actionString 动作描述字符串
+     * @param context 执行上下文
+     * @return 包含执行结果的CompletableFuture
+     */
+    public CompletableFuture<ActionResult> executeAsync(String actionString, Map<String, Object> context, String actionId) {
+        CompletableFuture<ActionResult> future = new CompletableFuture<>();
+
+        asyncExecutor.submit(() -> {
+            try {
+                ActionResult result = execute(actionString, context);
+                future.complete(result);
+            } catch (Exception e) {
+                logger.error("Error in async execution of action '{}': {}", actionString, e.getMessage());
+                future.complete(ActionResult.failure(e.getMessage()));
+            }
+        });
+
+        return future;
     }
 }

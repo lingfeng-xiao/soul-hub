@@ -2326,4 +2326,852 @@ public final class EvolutionEngine {
         result.addAll(b);
         return List.copyOf(result);
     }
+
+    // ==================== S19-1: 贝叶斯信念更新 ====================
+
+    /**
+     * 贝叶斯信念更新器
+     * 实现贝叶斯推断来更新信念：P(H|E) = P(E|H) * P(H) / P(E)
+     */
+    public static class BayesianBeliefUpdater {
+
+        /**
+         * 更新信念的贝叶斯推断
+         * P(H|E) = P(E|H) * P(H) / P(E)
+         *
+         * @param prior 先验概率 P(H)
+         * @param likelihood 似然 P(E|H)
+         * @param evidence 证据概率 P(E)
+         * @return 后验概率 P(H|E)
+         */
+        public float updateBelief(float prior, float likelihood, float evidence) {
+            if (evidence == 0f) return prior;
+            float posterior = (likelihood * prior) / evidence;
+            return clampProbability(posterior);
+        }
+
+        /**
+         * 使用成功率和失败率更新信念
+         *
+         * @param prior 先验概率
+         * @param successCount 成功次数
+         * @param failureCount 失败次数
+         * @return 更新后的信念
+         */
+        public float updateBeliefFromOutcome(float prior, int successCount, int failureCount) {
+            int total = successCount + failureCount;
+            if (total == 0) return prior;
+
+            // 似然：给定先验，成功率是多少
+            float likelihood = total > 0 ? (float) successCount / total : 0.5f;
+            // 证据：综合先验和观察
+            float evidence = (prior + likelihood) / 2f;
+
+            return updateBelief(prior, likelihood, evidence);
+        }
+
+        /**
+         * 计算两个信念的融合
+         * 使用贝叶斯条件化来合并不同来源的证据
+         */
+        public float fuseBeliefs(float belief1, float belief2, float weight1) {
+            float weight2 = 1f - weight1;
+            // 融合两个信念的权重
+            return clampProbability(belief1 * weight1 + belief2 * weight2);
+        }
+
+        /**
+         * 根据新证据调整信念
+         *
+         * @param currentBelief 当前信念
+         * @param newEvidence 新证据
+         * @param evidenceStrength 证据强度 (0-1)
+         * @return 更新后的信念
+         */
+        public float adjustBelief(float currentBelief, float newEvidence, float evidenceStrength) {
+            // 强证据移动信念更多
+            float movement = (newEvidence - currentBelief) * evidenceStrength;
+            return clampProbability(currentBelief + movement);
+        }
+
+        private float clampProbability(float value) {
+            return Math.max(0.01f, Math.min(0.99f, value));
+        }
+    }
+
+    /**
+     * 信念状态追踪
+     */
+    public record BeliefState(
+        String beliefId,
+        float currentBelief,
+        float priorBelief,
+        int observationCount,
+        Instant lastUpdated,
+        List<BeliefEvidence> evidenceHistory
+    ) {
+        public BeliefState {
+            evidenceHistory = evidenceHistory != null ? List.copyOf(evidenceHistory) : List.of();
+        }
+    }
+
+    public record BeliefEvidence(
+        Instant timestamp,
+        float evidence,
+        float likelihood,
+        float posterior,
+        String source
+    ) {}
+
+    // ==================== S19-2: 自动化原则提取 ====================
+
+    /**
+     * 原则提取器
+     * 从交互历史中自动提取行动原则
+     */
+    public static class PrincipleExtractor {
+
+        private final BayesianBeliefUpdater bayesianUpdater = new BayesianBeliefUpdater();
+        private static final int MIN_INTERACTIONS_FOR_EXTRACTION = 3;
+        private static final float MIN_CONFIDENCE_THRESHOLD = 0.4f;
+
+        /**
+         * 从交互历史中提取原则
+         *
+         * @param history 交互历史
+         * @return 提取的原则列表
+         */
+        public List<Principle> extractPrinciples(List<OwnerModel.Interaction> history) {
+            if (history == null || history.size() < MIN_INTERACTIONS_FOR_EXTRACTION) {
+                return List.of();
+            }
+
+            List<Principle> extractedPrinciples = new ArrayList<>();
+
+            // 分析交互类型模式
+            List<Principle> typePrinciples = extractTypeBasedPrinciples(history);
+            extractedPrinciples.addAll(typePrinciples);
+
+            // 分析情感模式
+            List<Principle> sentimentPrinciples = extractSentimentBasedPrinciples(history);
+            extractedPrinciples.addAll(sentimentPrinciples);
+
+            // 分析主题模式
+            List<Principle> topicPrinciples = extractTopicBasedPrinciples(history);
+            extractedPrinciples.addAll(topicPrinciples);
+
+            // 分析结果模式
+            List<Principle> outcomePrinciples = extractOutcomeBasedPrinciples(history);
+            extractedPrinciples.addAll(outcomePrinciples);
+
+            return extractedPrinciples;
+        }
+
+        /**
+         * 基于交互类型提取原则
+         */
+        private List<Principle> extractTypeBasedPrinciples(List<OwnerModel.Interaction> history) {
+            List<Principle> principles = new ArrayList<>();
+
+            // 按类型分组统计
+            var typeGroups = history.stream()
+                .collect(java.util.stream.Collectors.groupingBy(OwnerModel.Interaction::type));
+
+            for (var entry : typeGroups.entrySet()) {
+                OwnerModel.InteractionType type = entry.getKey();
+                List<OwnerModel.Interaction> interactions = entry.getValue();
+
+                if (interactions.size() >= MIN_INTERACTIONS_FOR_EXTRACTION) {
+                    // 计算平均情感
+                    float avgSentiment = (float) interactions.stream()
+                        .mapToDouble(OwnerModel.Interaction::sentiment)
+                        .average().orElse(0.5);
+
+                    // 判断成功模式
+                    long positiveOutcomes = interactions.stream()
+                        .filter(i -> i.outcome() != null && i.outcome().contains("成功"))
+                        .count();
+                    float successRate = (float) positiveOutcomes / interactions.size();
+
+                    if (successRate > 0.6f || avgSentiment > 0.3f) {
+                        String statement = generateTypePrinciple(type, avgSentiment, successRate);
+                        float confidence = calculatePrincipleConfidence(interactions.size(), successRate, avgSentiment);
+
+                        if (confidence >= MIN_CONFIDENCE_THRESHOLD) {
+                            principles.add(new Principle(
+                                Instant.now(),
+                                statement,
+                                List.of("基于 " + interactions.size() + " 次 " + type.name() + " 交互分析"),
+                                "交互类型:" + type.name(),
+                                confidence
+                            ));
+                        }
+                    }
+                }
+            }
+
+            return principles;
+        }
+
+        /**
+         * 基于情感提取原则
+         */
+        private List<Principle> extractSentimentBasedPrinciples(List<OwnerModel.Interaction> history) {
+            List<Principle> principles = new ArrayList<>();
+
+            // 高情感交互
+            List<OwnerModel.Interaction> highSentiment = history.stream()
+                .filter(i -> i.sentiment() > 0.5f)
+                .toList();
+
+            if (highSentiment.size() >= MIN_INTERACTIONS_FOR_EXTRACTION) {
+                String commonTopic = findCommonTopic(highSentiment);
+                if (commonTopic != null) {
+                    principles.add(new Principle(
+                        Instant.now(),
+                        "当主人情绪积极时，适合讨论 " + commonTopic + " 相关话题",
+                        List.of("基于 " + highSentiment.size() + " 次高情感交互分析"),
+                        "情境:主人情绪积极",
+                        0.6f
+                    ));
+                }
+            }
+
+            // 低情感交互
+            List<OwnerModel.Interaction> lowSentiment = history.stream()
+                .filter(i -> i.sentiment() < -0.3f)
+                .toList();
+
+            if (lowSentiment.size() >= 2) {
+                principles.add(new Principle(
+                    Instant.now(),
+                    "主人情绪低落时，应简洁回复并提供支持",
+                    List.of("基于 " + lowSentiment.size() + " 次低情感交互分析"),
+                    "情境:主人情绪低落",
+                    0.5f
+                ));
+            }
+
+            return principles;
+        }
+
+        /**
+         * 基于主题提取原则
+         */
+        private List<Principle> extractTopicBasedPrinciples(List<OwnerModel.Interaction> history) {
+            List<Principle> principles = new ArrayList<>();
+
+            // 按主题分组
+            var topicGroups = history.stream()
+                .filter(i -> i.topic() != null)
+                .collect(java.util.stream.Collectors.groupingBy(OwnerModel.Interaction::topic));
+
+            for (var entry : topicGroups.entrySet()) {
+                String topic = entry.getKey();
+                List<OwnerModel.Interaction> interactions = entry.getValue();
+
+                if (interactions.size() >= MIN_INTERACTIONS_FOR_EXTRACTION) {
+                    float avgSentiment = (float) interactions.stream()
+                        .mapToDouble(OwnerModel.Interaction::sentiment)
+                        .average().orElse(0.5);
+
+                    long positiveOutcomes = interactions.stream()
+                        .filter(i -> i.outcome() != null && i.outcome().contains("成功"))
+                        .count();
+                    float successRate = (float) positiveOutcomes / interactions.size();
+
+                    String statement;
+                    if (successRate > 0.7f && avgSentiment > 0.3f) {
+                        statement = "主人对 " + topic + " 相关话题反应积极，可以主动提供相关信息";
+                    } else if (successRate < 0.3f || avgSentiment < -0.2f) {
+                        statement = "主人对 " + topic + " 相关话题反应消极，应谨慎处理或减少提及";
+                    } else {
+                        continue;
+                    }
+
+                    principles.add(new Principle(
+                        Instant.now(),
+                        statement,
+                        List.of("基于 " + interactions.size() + " 次 " + topic + " 交互分析"),
+                        "主题:" + topic,
+                        calculatePrincipleConfidence(interactions.size(), successRate, avgSentiment)
+                    ));
+                }
+            }
+
+            return principles;
+        }
+
+        /**
+         * 基于结果提取原则
+         */
+        private List<Principle> extractOutcomeBasedPrinciples(List<OwnerModel.Interaction> history) {
+            List<Principle> principles = new ArrayList<>();
+
+            List<OwnerModel.Interaction> withOutcome = history.stream()
+                .filter(i -> i.outcome() != null)
+                .toList();
+
+            if (withOutcome.size() < MIN_INTERACTIONS_FOR_EXTRACTION) {
+                return principles;
+            }
+
+            // 成功模式
+            List<OwnerModel.Interaction> successful = withOutcome.stream()
+                .filter(i -> i.outcome().contains("成功"))
+                .toList();
+
+            if (successful.size() >= MIN_INTERACTIONS_FOR_EXTRACTION) {
+                String commonReaction = findMostCommonReaction(successful);
+                principles.add(new Principle(
+                    Instant.now(),
+                    "当交互成功时，表现出 " + commonReaction,
+                    List.of("基于 " + successful.size() + " 次成功交互分析"),
+                    "结果:成功",
+                    0.7f
+                ));
+            }
+
+            // 失败模式
+            List<OwnerModel.Interaction> failed = withOutcome.stream()
+                .filter(i -> i.outcome().contains("失败") || i.outcome().contains("拒绝"))
+                .toList();
+
+            if (failed.size() >= 2) {
+                principles.add(new Principle(
+                    Instant.now(),
+                    "当交互失败时，应简洁承认并避免重复同样方式",
+                    List.of("基于 " + failed.size() + " 次失败交互分析"),
+                    "结果:失败",
+                    0.6f
+                ));
+            }
+
+            return principles;
+        }
+
+        private String generateTypePrinciple(OwnerModel.InteractionType type, float avgSentiment, float successRate) {
+            return switch (type) {
+                case REQUEST -> successRate > 0.6f ?
+                    "主人请求时应及时响应并准确执行" :
+                    "主人请求时需要先确认关键细节";
+                case FEEDBACK -> avgSentiment > 0.3f ?
+                    "主人反馈积极时继续保持当前方式" :
+                    "主人反馈消极时应调整沟通策略";
+                case QUESTION -> "主人提问时应直接给出明确答案";
+                case COMPLAINT -> "主人抱怨时应该先安抚情绪再解决问题";
+                case PRAISE -> "主人表扬时可以适当回应并继续保持";
+                case CASUAL -> "主人闲聊时可以放松一些，保持友好氛围";
+                case PROACTIVE_REPLY -> "主动消息得到回复说明时机合适";
+                case PROACTIVE_IGNORE -> "主动消息被忽略说明时机不对或内容不相关";
+                default -> "根据交互类型调整响应方式";
+            };
+        }
+
+        private float calculatePrincipleConfidence(int interactionCount, float successRate, float avgSentiment) {
+            // 基于样本量和成功率计算置信度
+            float sampleFactor = Math.min(interactionCount * 0.1f, 0.4f);
+            float successFactor = successRate * 0.4f;
+            float sentimentFactor = (avgSentiment + 1f) * 0.2f; // 归一化到 0-0.2
+            return Math.min(0.95f, 0.3f + sampleFactor + successFactor + sentimentFactor);
+        }
+
+        private String findCommonTopic(List<OwnerModel.Interaction> interactions) {
+            var topicCounts = interactions.stream()
+                .filter(i -> i.topic() != null)
+                .collect(java.util.stream.Collectors.groupingBy(OwnerModel.Interaction::topic, java.util.stream.Collectors.counting()));
+
+            return topicCounts.entrySet().stream()
+                .filter(e -> e.getValue() >= 2)
+                .max(java.util.Map.Entry.comparingByValue())
+                .map(java.util.Map.Entry::getKey)
+                .orElse(null);
+        }
+
+        private String findMostCommonReaction(List<OwnerModel.Interaction> interactions) {
+            var reactionCounts = interactions.stream()
+                .filter(i -> i.digitalBeingReaction() != null)
+                .collect(java.util.stream.Collectors.groupingBy(OwnerModel.Interaction::digitalBeingReaction, java.util.stream.Collectors.counting()));
+
+            return reactionCounts.entrySet().stream()
+                .max(java.util.Map.Entry.comparingByValue())
+                .map(java.util.Map.Entry::getKey)
+                .orElse("满意");
+        }
+    }
+
+    // ==================== S19-3: 自适应学习策略调整 ====================
+
+    /**
+     * 自适应学习速率计算器
+     * 根据成功率和样本数动态调整学习速率
+     */
+    public static class AdaptiveLearningRate {
+
+        private static final float MIN_RATE = 0.1f;
+        private static final float MAX_RATE = 3.0f;
+        private static final float DEFAULT_RATE = 1.0f;
+
+        /**
+         * 计算自适应学习速率
+         *
+         * @param successRate 当前成功率 (0-1)
+         * @param sampleCount 样本数量
+         * @return 推荐的学习速率
+         */
+        public float computeRate(float successRate, int sampleCount) {
+            if (sampleCount < 3) {
+                // 样本不足时，使用较高的学习率快速探索
+                return Math.min(DEFAULT_RATE * 1.5f, MAX_RATE);
+            }
+
+            // 基础调整因子
+            float baseAdjustment;
+
+            if (successRate >= 0.8f) {
+                // 高成功率 - 降低学习率（已经学得很好）
+                baseAdjustment = 0.7f;
+            } else if (successRate >= 0.6f) {
+                // 中等成功率 - 保持稳定
+                baseAdjustment = 1.0f;
+            } else if (successRate >= 0.4f) {
+                // 较低成功率 - 稍微提高学习率
+                baseAdjustment = 1.3f;
+            } else {
+                // 低成功率 - 大幅提高学习率（需要快速学习新方式）
+                baseAdjustment = 1.8f;
+            }
+
+            // 样本数调整：更多样本意味着更可信，步伐可以更大
+            float sampleFactor = Math.min(1.0f + (sampleCount / 100f), 1.5f);
+
+            // 组合调整
+            float adjustedRate = DEFAULT_RATE * baseAdjustment * sampleFactor;
+
+            // 如果样本很多但成功率很低，可能需要更激进的调整
+            if (sampleCount > 50 && successRate < 0.3f) {
+                adjustedRate *= 1.3f;
+            }
+
+            return clampRate(adjustedRate);
+        }
+
+        /**
+         * 计算能力的具体学习速率
+         */
+        public float computeCapabilityRate(String capabilityName, float historicalSuccessRate, int totalAttempts, int recentFailures) {
+            // 基础成功率调整
+            float baseRate = computeRate(historicalSuccessRate, totalAttempts);
+
+            // 近期失败惩罚/奖励
+            if (recentFailures > 3) {
+                // 连续失败后增加学习率
+                baseRate *= 1.2f;
+            } else if (recentFailures == 0 && totalAttempts > 10) {
+                // 长期成功则减少学习率
+                baseRate *= 0.9f;
+            }
+
+            return clampRate(baseRate);
+        }
+
+        /**
+         * 计算全局学习速率
+         */
+        public float computeGlobalRate(float overallSuccessRate, int totalSamples, List<LearningRateConfig> capabilityConfigs) {
+            // 计算所有能力的平均学习速率
+            float avgCapabilityRate = capabilityConfigs.stream()
+                .mapToDouble(LearningRateConfig::currentRate)
+                .average()
+                .orElse(DEFAULT_RATE);
+
+            // 全局成功率调整
+            float globalRate = computeRate(overallSuccessRate, totalSamples);
+
+            // 融合能力和全局调整
+            float fused = (globalRate * 0.6f) + (avgCapabilityRate * 0.4f);
+
+            return clampRate(fused);
+        }
+
+        /**
+         * 获取学习速率建议
+         */
+        public LearningRateRecommendation getRecommendation(float currentRate, float successRate, int sampleCount) {
+            float recommended = computeRate(successRate, sampleCount);
+            float change = recommended - currentRate;
+            String advice;
+
+            if (Math.abs(change) < 0.1f) {
+                advice = "当前学习速率合适，保持不变";
+            } else if (change > 0) {
+                advice = String.format("建议提高学习速率 %.2f -> %.2f (成功率 %.1f%% 需要更积极学习)",
+                    currentRate, recommended, successRate * 100);
+            } else {
+                advice = String.format("建议降低学习速率 %.2f -> %.2f (已稳定，可减少调整)",
+                    currentRate, recommended);
+            }
+
+            return new LearningRateRecommendation(
+                currentRate,
+                recommended,
+                change,
+                advice,
+                successRate,
+                sampleCount
+            );
+        }
+
+        private float clampRate(float rate) {
+            return Math.max(MIN_RATE, Math.min(MAX_RATE, rate));
+        }
+    }
+
+    public record LearningRateRecommendation(
+        float currentRate,
+        float recommendedRate,
+        float change,
+        String advice,
+        float successRate,
+        int sampleCount
+    ) {}
+
+    // ==================== S19-4: 进化效果量化评估 ====================
+
+    /**
+     * 进化效果量化评估指标
+     */
+    public record EvolutionMetrics(
+        float improvementRate,        // 改进率：相比上次进化的提升
+        float stabilityScore,         // 稳定性得分：进化的稳定性
+        int skillsGained,             // 习得技能数
+        int skillsRefined,            // 精炼技能数
+        float beliefAccuracy,         // 信念准确度
+        float principleEffectiveness,  // 原则有效性
+        int successfulAdaptations,    // 成功适应次数
+        int failedAdaptations,        // 失败适应次数
+        float overallScore,           // 综合评分
+        Instant calculatedAt
+    ) {
+        public EvolutionMetrics {
+            if (calculatedAt == null) calculatedAt = Instant.now();
+        }
+    }
+
+    /**
+     * 进化效果评估器
+     */
+    public static class EvolutionEvaluator {
+
+        private final BayesianBeliefUpdater beliefUpdater = new BayesianBeliefUpdater();
+
+        /**
+         * 评估进化效果
+         *
+         * @param currentMetrics 当前指标
+         * @param previousMetrics 上次指标
+         * @param evolutionCount 进化次数
+         * @return 量化评估结果
+         */
+        public EvolutionMetrics evaluate(EvolutionMetrics currentMetrics, EvolutionMetrics previousMetrics, int evolutionCount) {
+            float improvementRate = calculateImprovementRate(currentMetrics, previousMetrics);
+            float stabilityScore = calculateStabilityScore(currentMetrics, previousMetrics);
+            float beliefAccuracy = calculateBeliefAccuracy(currentMetrics);
+            float principleEffectiveness = calculatePrincipleEffectiveness(currentMetrics);
+
+            int successfulAdaptations = currentMetrics.successfulAdaptations();
+            int failedAdaptations = currentMetrics.failedAdaptations();
+
+            // 综合评分
+            float overall = calculateOverallScore(
+                improvementRate,
+                stabilityScore,
+                beliefAccuracy,
+                principleEffectiveness,
+                successfulAdaptations,
+                failedAdaptations
+            );
+
+            return new EvolutionMetrics(
+                improvementRate,
+                stabilityScore,
+                currentMetrics.skillsGained(),
+                currentMetrics.skillsRefined(),
+                beliefAccuracy,
+                principleEffectiveness,
+                successfulAdaptations,
+                failedAdaptations,
+                overall,
+                Instant.now()
+            );
+        }
+
+        /**
+         * 从Engine状态生成评估指标
+         */
+        public EvolutionMetrics evaluateFromEngine(Engine engine, EvolutionMetrics previousMetrics) {
+            LearningStats stats = engine.learningLoop.getStats();
+            OutcomeStats outcomeStats = engine.feedbackCollector.getOutcomeStats();
+
+            // 计算技能变化
+            int skillsGained = countNewCapabilities(engine, previousMetrics);
+            int skillsRefined = countRefinedCapabilities(engine);
+
+            // 计算信念准确度（使用贝叶斯更新）
+            float beliefAccuracy = calculateCurrentBeliefAccuracy(stats, outcomeStats);
+
+            // 计算原则有效性
+            float principleEffectiveness = calculateCurrentPrincipleEffectiveness(engine.learningLoop);
+
+            // 适应次数统计
+            int successfulAdaptations = (int) engine.learningLoop.behaviorChanges.stream()
+                .filter(bc -> Boolean.TRUE.equals(bc.success()))
+                .count();
+            int failedAdaptations = (int) engine.learningLoop.behaviorChanges.stream()
+                .filter(bc -> Boolean.FALSE.equals(bc.success()))
+                .count();
+
+            EvolutionMetrics current = new EvolutionMetrics(
+                0f, // 稍后计算
+                0f, // 稍后计算
+                skillsGained,
+                skillsRefined,
+                beliefAccuracy,
+                principleEffectiveness,
+                successfulAdaptations,
+                failedAdaptations,
+                0f, // 稍后计算
+                Instant.now()
+            );
+
+            return evaluate(current, previousMetrics, engine.evolutionCount);
+        }
+
+        /**
+         * 创建初始指标（用于首次评估）
+         */
+        public EvolutionMetrics createBaseline() {
+            return new EvolutionMetrics(
+                0f,
+                1f, // 初始稳定性为1
+                0,
+                0,
+                0.5f, // 初始信念准确度0.5
+                0f,
+                0,
+                0,
+                0.5f,
+                Instant.now()
+            );
+        }
+
+        private float calculateImprovementRate(EvolutionMetrics current, EvolutionMetrics previous) {
+            if (previous == null) return 0f;
+
+            // 基于多个维度计算改进率
+            float skillImprovement = previous.skillsGained() > 0 ?
+                (float) (current.skillsGained() - previous.skillsGained()) / previous.skillsGained() : 0f;
+
+            float beliefImprovement = current.beliefAccuracy() - previous.beliefAccuracy();
+
+            float adaptationImprovement = calculateAdaptationImprovement(current, previous);
+
+            // 加权平均
+            return clampScore((skillImprovement * 0.3f) + (beliefImprovement * 0.3f) + (adaptationImprovement * 0.4f));
+        }
+
+        private float calculateStabilityScore(EvolutionMetrics current, EvolutionMetrics previous) {
+            if (previous == null) return 1f;
+
+            // 稳定性：成功适应 vs 总适应
+            int totalAdaptations = current.successfulAdaptations() + current.failedAdaptations() +
+                previous.successfulAdaptations() + previous.failedAdaptations();
+
+            if (totalAdaptations == 0) return 1f;
+
+            int successful = current.successfulAdaptations() + previous.successfulAdaptations();
+            return clampScore((float) successful / totalAdaptations);
+        }
+
+        private float calculateBeliefAccuracy(EvolutionMetrics metrics) {
+            return clampScore(metrics.beliefAccuracy());
+        }
+
+        private float calculatePrincipleEffectiveness(EvolutionMetrics metrics) {
+            int total = metrics.successfulAdaptations() + metrics.failedAdaptations();
+            if (total == 0) return 0.5f;
+
+            return clampScore((float) metrics.successfulAdaptations() / total);
+        }
+
+        private float calculateOverallScore(
+            float improvementRate,
+            float stabilityScore,
+            float beliefAccuracy,
+            float principleEffectiveness,
+            int successfulAdaptations,
+            int failedAdaptations
+        ) {
+            // 综合评分公式
+            float base = 0.25f; // 基础分
+
+            // 稳定性贡献
+            float stability = stabilityScore * 0.2f;
+
+            // 信念准确度贡献
+            float belief = beliefAccuracy * 0.15f;
+
+            // 原则有效性贡献
+            float principle = principleEffectiveness * 0.15f;
+
+            // 改进率贡献（可以是负的）
+            float improvement = (1f + improvementRate) * 0.15f;
+
+            // 适应成功率贡献
+            int totalAdaptations = successfulAdaptations + failedAdaptations;
+            float adaptationScore = totalAdaptations > 0 ?
+                ((float) successfulAdaptations / totalAdaptations) * 0.1f : 0f;
+
+            return clampScore(base + stability + belief + principle + improvement + adaptationScore);
+        }
+
+        private float calculateAdaptationImprovement(EvolutionMetrics current, EvolutionMetrics previous) {
+            int currentTotal = current.successfulAdaptations() + current.failedAdaptations();
+            int previousTotal = previous.successfulAdaptations() + previous.failedAdaptations();
+
+            if (currentTotal == 0 || previousTotal == 0) return 0f;
+
+            float currentRate = (float) current.successfulAdaptations() / currentTotal;
+            float previousRate = (float) previous.successfulAdaptations() / previousTotal;
+
+            return currentRate - previousRate;
+        }
+
+        private int countNewCapabilities(Engine engine, EvolutionMetrics previous) {
+            if (previous == null) return engine.learningLoop.capabilityPerformance.size();
+            return Math.max(0, engine.learningLoop.capabilityPerformance.size() - previous.skillsGained());
+        }
+
+        private int countRefinedCapabilities(Engine engine) {
+            // 计算被提升的能力数量
+            return (int) engine.learningLoop.capabilityPerformance.values().stream()
+                .filter(cp -> cp.successRate() >= 0.7f)
+                .count();
+        }
+
+        private float calculateCurrentBeliefAccuracy(LearningStats stats, OutcomeStats outcomeStats) {
+            // 使用贝叶斯方法综合多个信号
+            float prior = 0.5f;
+            float likelihood = outcomeStats.successRate();
+            float evidence = (prior + likelihood) / 2f;
+
+            return beliefUpdater.updateBelief(prior, likelihood, evidence);
+        }
+
+        private float calculateCurrentPrincipleEffectiveness(LearningLoop loop) {
+            if (loop.principles.isEmpty()) return 0.5f;
+
+            // 基于应用成功率计算原则有效性
+            float totalEffectiveness = 0f;
+            for (Principle p : loop.principles) {
+                if (p.timesApplied() > 0) {
+                    // 简化：假设应用次数多且置信度高 = 有效
+                    totalEffectiveness += p.confidence() * Math.min(1f, p.timesApplied() / 5f);
+                }
+            }
+
+            return loop.principles.isEmpty() ? 0.5f : clampScore(totalEffectiveness / loop.principles.size());
+        }
+
+        private float clampScore(float score) {
+            return Math.max(0f, Math.min(1f, score));
+        }
+    }
+
+    /**
+     * 简化的进化进度追踪器
+     */
+    public static class EvolutionProgressTracker {
+
+        private EvolutionMetrics lastMetrics = null;
+        private final EvolutionEvaluator evaluator = new EvolutionEvaluator();
+
+        /**
+         * 追踪当前进度
+         */
+        public EvolutionMetrics track(Engine engine) {
+            EvolutionMetrics current = evaluator.evaluateFromEngine(engine, lastMetrics);
+            lastMetrics = current;
+            return current;
+        }
+
+        /**
+         * 获取上次指标
+         */
+        public EvolutionMetrics getLastMetrics() {
+            return lastMetrics;
+        }
+
+        /**
+         * 获取进度报告
+         */
+        public EvolutionProgressReport getProgressReport(Engine engine) {
+            EvolutionMetrics current = track(engine);
+
+            String status;
+            if (current.overallScore() >= 0.8f) {
+                status = "EXCELLENT";
+            } else if (current.overallScore() >= 0.6f) {
+                status = "GOOD";
+            } else if (current.overallScore() >= 0.4f) {
+                status = "FAIR";
+            } else {
+                status = "NEEDS_IMPROVEMENT";
+            }
+
+            return new EvolutionProgressReport(
+                engine.evolutionLevel,
+                engine.evolutionCount,
+                current,
+                lastMetrics,
+                status,
+                generateRecommendations(current)
+            );
+        }
+
+        private List<String> generateRecommendations(EvolutionMetrics metrics) {
+            List<String> recommendations = new ArrayList<>();
+
+            if (metrics.stabilityScore() < 0.5f) {
+                recommendations.add("稳定性较低，建议减少大幅改变，专注于已有能力的提升");
+            }
+
+            if (metrics.beliefAccuracy() < 0.5f) {
+                recommendations.add("信念准确度不足，建议收集更多反馈来校准判断");
+            }
+
+            if (metrics.principleEffectiveness() < 0.4f) {
+                recommendations.add("原则有效性较低，建议审视现有原则是否适用");
+            }
+
+            if (metrics.improvementRate() < 0) {
+                recommendations.add("改进率为负，需要分析最近进化的效果并调整策略");
+            }
+
+            if (recommendations.isEmpty()) {
+                recommendations.add("各项指标正常，继续当前进化策略");
+            }
+
+            return recommendations;
+        }
+    }
+
+    public record EvolutionProgressReport(
+        int currentLevel,
+        int totalEvolutions,
+        EvolutionMetrics currentMetrics,
+        EvolutionMetrics previousMetrics,
+        String status,
+        List<String> recommendations
+    ) {}
 }

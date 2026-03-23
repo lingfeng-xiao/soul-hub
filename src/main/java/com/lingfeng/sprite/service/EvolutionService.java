@@ -2,6 +2,7 @@ package com.lingfeng.sprite.service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +10,13 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.lingfeng.sprite.EvolutionEngine;
+import com.lingfeng.sprite.EvolutionEngine.BayesianBeliefUpdater;
+import com.lingfeng.sprite.EvolutionEngine.AdaptiveLearningRate;
+import com.lingfeng.sprite.EvolutionEngine.EvolutionEvaluator;
+import com.lingfeng.sprite.EvolutionEngine.EvolutionMetrics;
+import com.lingfeng.sprite.EvolutionEngine.EvolutionProgressTracker;
+import com.lingfeng.sprite.EvolutionEngine.PrincipleExtractor;
+import com.lingfeng.sprite.OwnerModel;
 import com.lingfeng.sprite.Sprite;
 import com.lingfeng.sprite.config.AppConfig;
 
@@ -17,6 +25,7 @@ import com.lingfeng.sprite.config.AppConfig;
  *
  * 负责将进化引擎的结果应用到 Sprite
  * 支持定时触发和条件触发两种模式
+ * S19增强：集成贝叶斯信念更新、自动化原则提取、自适应学习速率、进化效果评估
  */
 @Service
 public class EvolutionService {
@@ -26,6 +35,13 @@ public class EvolutionService {
     private final AppConfig appConfig;
     private Instant lastEvolutionTime = Instant.now();
     private Instant lastConditionCheckTime = Instant.now();
+
+    // S19 增强组件
+    private final BayesianBeliefUpdater bayesianBeliefUpdater = new BayesianBeliefUpdater();
+    private final PrincipleExtractor principleExtractor = new PrincipleExtractor();
+    private final AdaptiveLearningRate adaptiveLearningRate = new AdaptiveLearningRate();
+    private final EvolutionEvaluator evolutionEvaluator = new EvolutionEvaluator();
+    private final EvolutionProgressTracker progressTracker = new EvolutionProgressTracker();
 
     public EvolutionService(AppConfig appConfig) {
         this.appConfig = appConfig;
@@ -137,5 +153,108 @@ public class EvolutionService {
         logger.info("Force evolution triggered");
         lastEvolutionTime = Instant.now().minus(appConfig.getEvolution().getIntervalMs(), ChronoUnit.MILLIS);
         applyEvolution(sprite);
+    }
+
+    // ==================== S19-1: 贝叶斯信念更新 ====================
+
+    /**
+     * 使用贝叶斯方法更新信念
+     * P(H|E) = P(E|H) * P(H) / P(E)
+     *
+     * @param prior 先验概率
+     * @param likelihood 似然
+     * @param evidence 证据
+     * @return 更新后的信念
+     */
+    public float updateBeliefBayesian(float prior, float likelihood, float evidence) {
+        return bayesianBeliefUpdater.updateBelief(prior, likelihood, evidence);
+    }
+
+    /**
+     * 从结果更新信念
+     */
+    public float updateBeliefFromOutcome(float prior, int successCount, int failureCount) {
+        return bayesianBeliefUpdater.updateBeliefFromOutcome(prior, successCount, failureCount);
+    }
+
+    /**
+     * 融合两个来源的信念
+     */
+    public float fuseBeliefs(float belief1, float belief2, float weight1) {
+        return bayesianBeliefUpdater.fuseBeliefs(belief1, belief2, weight1);
+    }
+
+    // ==================== S19-2: 自动化原则提取 ====================
+
+    /**
+     * 从交互历史中提取原则
+     *
+     * @param history 交互历史
+     * @return 提取的原则列表
+     */
+    public List<EvolutionEngine.Principle> extractPrinciples(List<OwnerModel.Interaction> history) {
+        return principleExtractor.extractPrinciples(history);
+    }
+
+    // ==================== S19-3: 自适应学习速率 ====================
+
+    /**
+     * 计算自适应学习速率
+     *
+     * @param successRate 成功率
+     * @param sampleCount 样本数
+     * @return 推荐的学习速率
+     */
+    public float computeAdaptiveLearningRate(float successRate, int sampleCount) {
+        return adaptiveLearningRate.computeRate(successRate, sampleCount);
+    }
+
+    /**
+     * 获取学习速率建议
+     */
+    public EvolutionEngine.LearningRateRecommendation getLearningRateRecommendation(
+            float currentRate, float successRate, int sampleCount) {
+        return adaptiveLearningRate.getRecommendation(currentRate, successRate, sampleCount);
+    }
+
+    // ==================== S19-4: 进化效果量化评估 ====================
+
+    /**
+     * 获取当前进化进度报告
+     */
+    public EvolutionEngine.EvolutionProgressReport getProgressReport(Sprite sprite) {
+        EvolutionEngine.Engine engine = sprite.getEvolutionEngine();
+        if (engine == null) {
+            return new EvolutionEngine.EvolutionProgressReport(
+                0, 0,
+                evolutionEvaluator.createBaseline(),
+                null,
+                "NO_ENGINE",
+                List.of("Sprite has no evolution engine initialized")
+            );
+        }
+        return progressTracker.getProgressReport(engine);
+    }
+
+    /**
+     * 获取当前进化指标
+     */
+    public EvolutionMetrics getCurrentMetrics(Sprite sprite) {
+        EvolutionEngine.Engine engine = sprite.getEvolutionEngine();
+        if (engine == null) {
+            return evolutionEvaluator.createBaseline();
+        }
+        return progressTracker.track(engine);
+    }
+
+    /**
+     * 评估进化效果
+     */
+    public EvolutionMetrics evaluateEvolution(Sprite sprite) {
+        EvolutionEngine.Engine engine = sprite.getEvolutionEngine();
+        if (engine == null) {
+            return evolutionEvaluator.createBaseline();
+        }
+        return evolutionEvaluator.evaluateFromEngine(engine, progressTracker.getLastMetrics());
     }
 }

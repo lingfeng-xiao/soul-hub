@@ -3,6 +3,7 @@ package com.lingfeng.sprite.service;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,7 @@ import com.lingfeng.sprite.sensor.RealEnvironmentSensor;
 import com.lingfeng.sprite.sensor.RealPlatformSensor;
 import com.lingfeng.sprite.sensor.RealUserSensor;
 import com.lingfeng.sprite.action.ActionResult;
+import com.lingfeng.sprite.action.QuickReactionHandler;
 import com.lingfeng.sprite.config.AppConfig;
 import com.lingfeng.sprite.llm.MinMaxConfig;
 import com.lingfeng.sprite.llm.MinMaxLlmReasoner;
@@ -46,6 +48,7 @@ public class SpriteService {
     private final AvatarService avatarService;
     private final WebhookService webhookService;
     private final MultiDeviceCoordinationService multiDeviceCoordinationService;
+    private final QuickReactionHandler quickReactionHandler;
 
     public SpriteService(
             AppConfig appConfig,
@@ -58,7 +61,8 @@ public class SpriteService {
             UnifiedContextService unifiedContextService,
             AvatarService avatarService,
             WebhookService webhookService,
-            MultiDeviceCoordinationService multiDeviceCoordinationService
+            MultiDeviceCoordinationService multiDeviceCoordinationService,
+            QuickReactionHandler quickReactionHandler
     ) {
         this.memoryConsolidationService = memoryConsolidationService;
         this.evolutionService = evolutionService;
@@ -68,6 +72,7 @@ public class SpriteService {
         this.avatarService = avatarService;
         this.webhookService = webhookService;
         this.multiDeviceCoordinationService = multiDeviceCoordinationService;
+        this.quickReactionHandler = quickReactionHandler;
 
         // 加载已保存的长期记忆
         this.memory.load();
@@ -392,5 +397,115 @@ public class SpriteService {
             Map.of("timestamp", Instant.now().toString()));
         sprite.stop();
         logger.info("Sprite stopped");
+    }
+
+    /**
+     * S16-1: 处理快速反应
+     *
+     * 检查输入是否可以通过快速通道处理
+     *
+     * @param input 用户输入
+     * @return 快速反应结果，如果不能绕过则返回null
+     */
+    public CognitionController.QuickReactionResult handleQuickReaction(String input) {
+        if (quickReactionHandler == null) {
+            logger.warn("QuickReactionHandler not available");
+            return null;
+        }
+
+        // 获取认知控制器
+        CognitionController cognitionController = sprite.getCognitionController();
+        if (cognitionController == null) {
+            logger.warn("CognitionController not available");
+            return null;
+        }
+
+        return cognitionController.handleQuickReaction(input, quickReactionHandler);
+    }
+
+    /**
+     * S16-2: 处理紧急事件队列
+     *
+     * 在每轮认知循环中调用，处理积压的紧急事件
+     */
+    public void processUrgentEvents() {
+        if (quickReactionHandler == null) {
+            return;
+        }
+
+        QuickReactionHandler.UrgentEvent event;
+        int processed = 0;
+        int maxProcess = 10; // 每轮最多处理10个紧急事件
+
+        while (processed < maxProcess && (event = quickReactionHandler.pollUrgentEvent()) != null) {
+            logger.info("Processing urgent event: id={}, priority={}, content={}",
+                event.eventId(), event.priority(), event.content());
+
+            // 紧急事件触发通知动作
+            ActionResult result = actionExecutor.executeTool("NotifyAction",
+                Map.of(
+                    "actionParam", "紧急事件: " + event.content(),
+                    "priority", event.priority(),
+                    "timestamp", Instant.now()
+                )
+            );
+
+            // 记录反馈
+            if (result != null) {
+                recordActionFeedback("URGENT:" + event.eventId(), result);
+            }
+
+            // S13-1: 触发紧急事件处理事件
+            webhookService.triggerEvent(WebhookService.EventType.ACTION_EXECUTED,
+                Map.of(
+                    "timestamp", Instant.now().toString(),
+                    "tool", "NotifyAction",
+                    "success", result != null && result.success(),
+                    "urgent", true,
+                    "eventId", event.eventId()
+                ));
+
+            processed++;
+        }
+
+        if (processed > 0) {
+            logger.info("Processed {} urgent events", processed);
+        }
+    }
+
+    /**
+     * S16-4: 异步执行动作并注册回调
+     *
+     * @param action 动作名称
+     * @param context 执行上下文
+     * @param actionId 动作ID用于追踪
+     * @return 异步结果
+     */
+    public CompletableFuture<ActionResult> executeAsyncAction(String action, Map<String, Object> context, String actionId) {
+        logger.debug("Registering async action: id={}, action={}", actionId, action);
+
+        // 注册到快速反应处理器
+        if (quickReactionHandler != null) {
+            quickReactionHandler.registerAsyncAction(actionId, new QuickReactionHandler.SimpleFuture<>(actionId));
+        }
+
+        // 异步执行
+        return actionExecutor.executeAsync(action, context, actionId);
+    }
+
+    /**
+     * S16-4: 完成异步动作
+     */
+    public void completeAsyncAction(String actionId, ActionResult result) {
+        if (quickReactionHandler != null) {
+            quickReactionHandler.completeAsyncAction(actionId, result);
+        }
+    }
+
+    /**
+     * S16-2: 获取紧急事件队列大小
+     */
+    public int getUrgentQueueSize() {
+        return quickReactionHandler != null ? quickReactionHandler.getUrgentQueueSize() : 0;
     }
 }

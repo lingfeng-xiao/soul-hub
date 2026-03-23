@@ -9,6 +9,8 @@ import com.lingfeng.sprite.OwnerModel;
 import com.lingfeng.sprite.SelfModel;
 import com.lingfeng.sprite.WorldModel;
 import com.lingfeng.sprite.cognition.ReasoningEngine;
+import com.lingfeng.sprite.action.ActionResult;
+import com.lingfeng.sprite.action.QuickReactionHandler;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -163,6 +165,51 @@ public class CognitionController {
         );
     }
 
+    /**
+     * S16-1: 感知→动作旁路处理
+     *
+     * 检查输入是否可以通过快速通道绕过完整认知循环
+     *
+     * @param input 用户输入
+     * @param quickReactionHandler 快速反应处理器
+     * @return 如果可绕过，返回快速处理结果；否则返回null继续正常认知流程
+     */
+    public QuickReactionResult handleQuickReaction(String input, QuickReactionHandler quickReactionHandler) {
+        if (input == null || input.isBlank() || quickReactionHandler == null) {
+            return null;
+        }
+
+        // S16-2: 优先检查紧急事件
+        if (quickReactionHandler.isUrgent(input)) {
+            logger.info("Urgent input detected, bypassing full cognition: {}", input);
+            // 将紧急事件加入优先队列
+            String eventId = UUID.randomUUID().toString();
+            quickReactionHandler.addUrgentEvent(eventId, input, 10); // 高优先级
+            return new QuickReactionResult(
+                true,
+                true,
+                ActionResult.success("紧急事件已记录: " + input),
+                eventId
+            );
+        }
+
+        // S16-3: 检查简单查询
+        if (quickReactionHandler.canBypass(input)) {
+            logger.debug("Simple query detected, handling directly: {}", input);
+            ActionResult directResult = quickReactionHandler.handleDirect(input);
+            if (directResult != null) {
+                return new QuickReactionResult(
+                    true,
+                    false,
+                    directResult,
+                    null
+                );
+            }
+        }
+
+        return null; // 不匹配快速通道，继续正常认知
+    }
+
     private ActionRecommendation generateActionRecommendation(
         PerceptionSystem.Perception perception,
         SelfReflector.ReflectionResult reflection,
@@ -287,5 +334,15 @@ public class CognitionController {
         PerceptionSystem.SalienceScore salienceScore,
         boolean isSignificant,
         DecisionEngine.DecisionResult decisionResult
+    ) {}
+
+    /**
+     * S16-1: 快速反应结果
+     */
+    public record QuickReactionResult(
+        boolean bypassed,
+        boolean isUrgent,
+        ActionResult result,
+        String eventId
     ) {}
 }

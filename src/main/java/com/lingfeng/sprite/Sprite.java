@@ -371,6 +371,13 @@ public class Sprite {
         return evolutionEngine;
     }
 
+    /**
+     * S16-1: 获取认知控制器
+     */
+    public CognitionController getCognitionController() {
+        return cognitionController;
+    }
+
     public record State(
         SelfModel.Self identity,
         Platform platform,
