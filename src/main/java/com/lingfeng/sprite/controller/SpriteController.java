@@ -22,6 +22,7 @@ import com.lingfeng.sprite.service.EmotionHistoryService;
 import com.lingfeng.sprite.service.MemoryVisualizationService;
 import com.lingfeng.sprite.service.OwnerEmotionDashboardService;
 import com.lingfeng.sprite.service.EvolutionDashboardService;
+import com.lingfeng.sprite.service.CognitionDashboardService;
 import com.lingfeng.sprite.service.SpriteService;
 
 /**
@@ -42,6 +43,7 @@ public class SpriteController {
     private final MemoryVisualizationService memoryVisualizationService;
     private final OwnerEmotionDashboardService emotionDashboardService;
     private final EvolutionDashboardService evolutionDashboardService;
+    private final CognitionDashboardService cognitionDashboardService;
 
     public SpriteController(
             SpriteService spriteService,
@@ -52,7 +54,8 @@ public class SpriteController {
             GitHubBackupService gitHubBackupService,
             MemoryVisualizationService memoryVisualizationService,
             OwnerEmotionDashboardService emotionDashboardService,
-            EvolutionDashboardService evolutionDashboardService
+            EvolutionDashboardService evolutionDashboardService,
+            CognitionDashboardService cognitionDashboardService
     ) {
         this.spriteService = spriteService;
         this.healthMonitorService = healthMonitorService;
@@ -63,6 +66,7 @@ public class SpriteController {
         this.memoryVisualizationService = memoryVisualizationService;
         this.emotionDashboardService = emotionDashboardService;
         this.evolutionDashboardService = evolutionDashboardService;
+        this.cognitionDashboardService = cognitionDashboardService;
     }
 
     /**
@@ -160,6 +164,16 @@ public class SpriteController {
     public ResponseEntity<CognitionController.CognitionStats> getCognitionStats() {
         CognitionController.CognitionStats stats = spriteService.getCognitionStats();
         return ResponseEntity.ok(stats);
+    }
+
+    /**
+     * S12-4: GET /api/sprite/cognition/dashboard - 获取认知Dashboard数据
+     */
+    @GetMapping("/cognition/dashboard")
+    public ResponseEntity<CognitionDashboardService.CognitionDashboardData> getCognitionDashboard() {
+        CognitionDashboardService.CognitionDashboardData data =
+                cognitionDashboardService.getDashboardData();
+        return ResponseEntity.ok(data);
     }
 
     /**
