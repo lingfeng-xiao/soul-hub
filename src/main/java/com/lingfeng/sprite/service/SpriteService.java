@@ -271,7 +271,7 @@ public class SpriteService {
             }
             return EvolutionEngine.Impact.MEDIUM;
         } else {
-            return EvolutionEngine.Impact.NEGATIVE;
+            return EvolutionEngine.Impact.LOW;  // 失败时影响度为低
         }
     }
 
