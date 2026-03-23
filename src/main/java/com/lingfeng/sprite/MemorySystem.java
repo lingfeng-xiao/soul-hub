@@ -885,7 +885,135 @@ public final class MemorySystem {
         public void load() {
             longTerm.load();
         }
+
+        // ==================== S20: Memory Retrieval Enhancements ====================
+
+        /**
+         * S20-1: 生成记忆内容的语义哈希（用于向量相似度搜索的简化实现）
+         * 在实际应用中，这里会调用真实的嵌入模型
+         *
+         * @param content 记忆内容
+         * @return 简化的语义哈希
+         */
+        public String generateMemorySignature(String content) {
+            if (content == null || content.isEmpty()) {
+                return "";
+            }
+            // 简单的词袋哈希 - 实际应该用 embedding model
+            return Integer.toHexString(content.hashCode());
+        }
+
+        /**
+         * S20-1: 高级检索 - 结合多种策略
+         *
+         * @param query 查询文本
+         * @param limit 结果数量限制
+         * @return 增强的检索结果
+         */
+        public EnhancedRecallResult enhancedRecall(String query, int limit) {
+            List<EpisodicEntry> episodicResults = longTerm.recallEpisodic(query, limit);
+            List<SemanticEntry> semanticResults = longTerm.recallSemantic(query);
+            List<ProceduralEntry> proceduralResults = longTerm.getAllProcedural().stream()
+                .filter(p -> p.skillName().toLowerCase().contains(query.toLowerCase()) ||
+                             p.procedure().toLowerCase().contains(query.toLowerCase()))
+                .limit(limit)
+                .toList();
+
+            return new EnhancedRecallResult(
+                episodicResults,
+                semanticResults,
+                proceduralResults,
+                computeRetrievalScore(episodicResults, semanticResults, proceduralResults)
+            );
+        }
+
+        /**
+         * 计算检索结果的整体评分
+         */
+        private float computeRetrievalScore(
+                List<EpisodicEntry> episodic,
+                List<SemanticEntry> semantic,
+                List<ProceduralEntry> procedural) {
+            float score = 0f;
+            score += episodic.size() * 0.3f;
+            score += semantic.size() * 0.25f;
+            score += procedural.size() * 0.2f;
+            return Math.min(1.0f, score);
+        }
+
+        /**
+         * S20-3: 为记忆建立跨模态索引关键词
+         *
+         * @param entry 情景记忆
+         * @return 提取的关键词列表
+         */
+        public List<String> extractCrossModalKeywords(EpisodicEntry entry) {
+            List<String> keywords = new ArrayList<>();
+            if (entry == null) return keywords;
+
+            // 从经验中提取关键词
+            String exp = entry.experience() != null ? entry.experience() : "";
+            for (String word : exp.split("[\\s,.!?;:，。！？；：]+")) {
+                if (word.length() > 2) {
+                    keywords.add(word.toLowerCase());
+                }
+            }
+
+            // 从情绪中提取
+            if (entry.emotion() != null) {
+                keywords.add(entry.emotion().toLowerCase());
+            }
+
+            // 从位置中提取
+            if (entry.location() != null) {
+                keywords.add(entry.location().toLowerCase());
+            }
+
+            return keywords.stream().distinct().collect(java.util.stream.Collectors.toList());
+        }
+
+        /**
+         * S20-3: 跨模态记忆查询 - 同时查询多种记忆类型
+         *
+         * @param query 查询
+         * @param types 要查询的记忆类型
+         * @return 跨模态查询结果
+         */
+        public CrossModalRecallResult crossModalRecall(String query, List<StoreType> types) {
+            List<EpisodicEntry> episodic = types.contains(StoreType.EPISODIC)
+                ? longTerm.recallEpisodic(query, 10) : List.of();
+            List<SemanticEntry> semantic = types.contains(StoreType.SEMANTIC)
+                ? longTerm.recallSemantic(query) : List.of();
+            List<ProceduralEntry> procedural = types.contains(StoreType.PROCEDURAL)
+                ? longTerm.getAllProcedural().stream()
+                    .filter(p -> p.skillName().toLowerCase().contains(query.toLowerCase()))
+                    .limit(5).toList() : List.of();
+            List<PerceptiveEntry> perceptive = types.contains(StoreType.PERCEPTIVE)
+                ? longTerm.recallPerceptive(query) : List.of();
+
+            return new CrossModalRecallResult(episodic, semantic, procedural, perceptive);
+        }
     }
+
+    /**
+     * S20: 增强的检索结果
+     */
+    public record EnhancedRecallResult(
+        List<EpisodicEntry> episodic,
+        List<SemanticEntry> semantic,
+        List<ProceduralEntry> procedural,
+        float overallScore
+    ) {}
+
+    /**
+     * S20-3: 跨模态检索结果
+     */
+    public record CrossModalRecallResult(
+        List<EpisodicEntry> episodic,
+        List<SemanticEntry> semantic,
+        List<ProceduralEntry> procedural,
+        List<PerceptiveEntry> perceptive
+    ) {}
 
     public record RecallResult(
         List<WorkingMemoryItem> workingItems,

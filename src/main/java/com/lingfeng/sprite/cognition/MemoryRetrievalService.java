@@ -3,7 +3,10 @@ package com.lingfeng.sprite.cognition;
 import com.lingfeng.sprite.MemorySystem;
 import com.lingfeng.sprite.MemorySystem.*;
 import com.lingfeng.sprite.OwnerModel;
+import com.lingfeng.sprite.PerceptionSystem;
 import com.lingfeng.sprite.WorldModel;
+import com.lingfeng.sprite.service.VectorStore;
+import com.lingfeng.sprite.service.KnowledgeGraph;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -33,6 +36,11 @@ public class MemoryRetrievalService {
 
     private final MemorySystem.Memory memory;
     private final ZoneId timezone = ZoneId.of("Asia/Shanghai");
+    private final VectorStore vectorStore;
+    private final KnowledgeGraph knowledgeGraph;
+
+    // S20-3: Cross-modal memory associations (memoryId1 -> memoryId2 -> strength)
+    private final Map<String, Map<String, Float>> crossModalAssociations = new HashMap<>();
 
     // 记忆检索结果
     public record RetrievalContext(
@@ -52,7 +60,338 @@ public class MemoryRetrievalService {
 
     public MemoryRetrievalService(MemorySystem.Memory memory) {
         this.memory = memory;
+        this.vectorStore = new VectorStore();
+        this.knowledgeGraph = new KnowledgeGraph();
     }
+
+    public MemoryRetrievalService(MemorySystem.Memory memory, VectorStore vectorStore, KnowledgeGraph knowledgeGraph) {
+        this.memory = memory;
+        this.vectorStore = vectorStore;
+        this.knowledgeGraph = knowledgeGraph;
+    }
+
+    // ==================== S20-1: Vector Similarity Search ====================
+
+    /**
+     * S20-1: 使用向量嵌入进行语义相似度搜索
+     *
+     * @param queryText 查询文本
+     * @param topK 返回结果数量
+     * @return 相似记忆列表
+     */
+    public List<String> vectorSearch(String queryText, int topK) {
+        if (queryText == null || queryText.isEmpty()) {
+            return List.of();
+        }
+        float[] queryEmbedding = vectorStore.generateTextEmbedding(queryText);
+        return vectorStore.search(queryEmbedding, topK);
+    }
+
+    /**
+     * S20-1: 使用向量嵌入搜索并返回带分数的结果
+     *
+     * @param queryText 查询文本
+     * @param topK 返回结果数量
+     * @return 带相似度分数的搜索结果
+     */
+    public List<VectorStore.SearchResult> vectorSearchWithScores(String queryText, int topK) {
+        if (queryText == null || queryText.isEmpty()) {
+            return List.of();
+        }
+        float[] queryEmbedding = vectorStore.generateTextEmbedding(queryText);
+        return vectorStore.searchWithScores(queryEmbedding, topK);
+    }
+
+    /**
+     * S20-1: 将记忆存储到向量库
+     *
+     * @param memoryId 记忆ID
+     * @param content 记忆内容
+     * @param memoryType 记忆类型
+     */
+    public void storeToVector(String memoryId, String content, String memoryType) {
+        float[] embedding = vectorStore.generateTextEmbedding(content);
+        vectorStore.store(memoryId, embedding, memoryType, content);
+    }
+
+    /**
+     * S20-1: 获取向量存储
+     */
+    public VectorStore getVectorStore() {
+        return vectorStore;
+    }
+
+    // ==================== S20-2: Knowledge Graph ====================
+
+    /**
+     * S20-2: 获取知识图谱
+     */
+    public KnowledgeGraph getKnowledgeGraph() {
+        return knowledgeGraph;
+    }
+
+    /**
+     * S20-2: 添加实体到知识图谱
+     *
+     * @param name 实体名称
+     * @param type 实体类型
+     */
+    public void addEntity(String name, String type) {
+        knowledgeGraph.addEntity(name, type);
+    }
+
+    /**
+     * S20-2: 添加实体关系
+     *
+     * @param entity1 实体1
+     * @param relation 关系类型
+     * @param entity2 实体2
+     * @param strength 关系强度
+     */
+    public void addRelation(String entity1, String relation, String entity2, float strength) {
+        knowledgeGraph.addRelation(entity1, relation, entity2, strength);
+    }
+
+    /**
+     * S20-2: 获取与实体相关的所有实体
+     *
+     * @param entity 实体名称
+     * @return 关系列表
+     */
+    public List<KnowledgeGraph.Relation> getRelatedEntities(String entity) {
+        return knowledgeGraph.getRelated(entity);
+    }
+
+    // ==================== S20-3: Cross-modal Memory Association ====================
+
+    /**
+     * S20-3: 建立跨模态记忆关联
+     * 关联不同类型的记忆：情景 <-> 语义 <-> 程序 <-> 感知
+     *
+     * @param memoryId1 第一个记忆ID
+     * @param memoryId2 第二个记忆ID
+     * @param strength 关联强度 (0-1)
+     */
+    public void associateMemories(String memoryId1, String memoryId2, float strength) {
+        if (memoryId1 == null || memoryId2 == null || memoryId1.equals(memoryId2)) {
+            return;
+        }
+        strength = Math.max(0f, Math.min(1f, strength));
+
+        // 双向关联
+        crossModalAssociations
+            .computeIfAbsent(memoryId1, k -> new HashMap<>())
+            .put(memoryId2, strength);
+        crossModalAssociations
+            .computeIfAbsent(memoryId2, k -> new HashMap<>())
+            .put(memoryId1, strength);
+    }
+
+    /**
+     * S20-3: 获取与指定记忆关联的所有记忆
+     *
+     * @param memoryId 记忆ID
+     * @return 关联的记忆ID及强度
+     */
+    public Map<String, Float> getAssociatedMemories(String memoryId) {
+        return crossModalAssociations.getOrDefault(memoryId, Map.of());
+    }
+
+    /**
+     * S20-3: 获取跨模态关联记忆的内容
+     *
+     * @param memoryId 记忆ID
+     * @return 关联记忆的描述
+     */
+    public List<String> getAssociatedMemoryContents(String memoryId) {
+        Map<String, Float> associations = getAssociatedMemories(memoryId);
+        List<String> contents = new ArrayList<>();
+
+        for (Map.Entry<String, Float> entry : associations.entrySet()) {
+            String otherId = entry.getKey();
+            float strength = entry.getValue();
+
+            // 从向量存储获取内容
+            VectorStore.VectorMetadata meta = vectorStore.getMetadata(otherId);
+            if (meta != null && meta.content() != null && !meta.content().isEmpty()) {
+                contents.add(String.format("[%.0f%%相关] %s",
+                    strength * 100, meta.content()));
+            }
+        }
+
+        return contents;
+    }
+
+    /**
+     * S20-3: 清除记忆关联
+     *
+     * @param memoryId 记忆ID
+     */
+    public void clearMemoryAssociations(String memoryId) {
+        crossModalAssociations.remove(memoryId);
+        // Also remove from other memories
+        for (Map<String, Float> others : crossModalAssociations.values()) {
+            others.remove(memoryId);
+        }
+    }
+
+    // ==================== S20-4: Proactive Memory Recommendation ====================
+
+    /**
+     * S20-4: 基于当前感知主动推荐相关记忆
+     *
+     * @param currentPerception 当前感知
+     * @return 推荐的记忆列表
+     */
+    public List<MemoryRecommendation> recommendRelatedMemories(PerceptionSystem.Perception currentPerception) {
+        if (currentPerception == null) {
+            return List.of();
+        }
+
+        List<MemoryRecommendation> recommendations = new ArrayList<>();
+
+        // 1. 基于用户活动的推荐
+        if (currentPerception.user() != null) {
+            String activity = currentPerception.user().currentActivity();
+            if (activity != null && !activity.isEmpty()) {
+                recommendations.addAll(recommendByActivity(activity));
+            }
+        }
+
+        // 2. 基于环境的推荐
+        if (currentPerception.environment() != null) {
+            String location = currentPerception.environment().location();
+            if (location != null && !location.isEmpty()) {
+                recommendations.addAll(recommendByLocation(location));
+            }
+        }
+
+        // 3. 基于时间的推荐
+        recommendations.addAll(recommendByTimeContext());
+
+        // 4. 基于情绪的推荐
+        if (currentPerception.user() != null && currentPerception.user().mood() != null) {
+            recommendations.addAll(recommendByMood(currentPerception.user().mood()));
+        }
+
+        // 去重并排序
+        return recommendations.stream()
+            .collect(Collectors.toMap(MemoryRecommendation::memoryId, r -> r, (a, b) -> a))
+            .values()
+            .stream()
+            .sorted((a, b) -> Float.compare(b.relevanceScore(), a.relevanceScore()))
+            .limit(10)
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * 基于活动的推荐
+     */
+    private List<MemoryRecommendation> recommendByActivity(String activity) {
+        List<MemoryRecommendation> results = new ArrayList<>();
+
+        // 语义搜索
+        List<VectorStore.SearchResult> vectorResults = vectorStore.searchWithScores(
+            vectorStore.generateTextEmbedding(activity), 5);
+
+        for (VectorStore.SearchResult result : vectorResults) {
+            if (result.metadata() != null) {
+                results.add(new MemoryRecommendation(
+                    result.id(),
+                    result.metadata().content(),
+                    "活动相关",
+                    result.score()
+                ));
+            }
+        }
+
+        // 知识图谱关联
+        List<KnowledgeGraph.Relation> related = knowledgeGraph.getRelated(activity);
+        for (KnowledgeGraph.Relation r : related) {
+            results.add(new MemoryRecommendation(
+                r.entity2(),
+                r.entity2(),
+                "知识关联: " + r.relation(),
+                r.strength()
+            ));
+        }
+
+        return results;
+    }
+
+    /**
+     * 基于位置的推荐
+     */
+    private List<MemoryRecommendation> recommendByLocation(String location) {
+        List<MemoryRecommendation> results = new ArrayList<>();
+
+        if (memory != null && memory.getLongTerm() != null) {
+            List<EpisodicEntry> episodic = memory.getLongTerm().recallSemantic(location);
+            for (EpisodicEntry entry : episodic) {
+                results.add(new MemoryRecommendation(
+                    entry.id(),
+                    entry.experience(),
+                    "位置相关",
+                    0.7f
+                ));
+            }
+        }
+
+        return results;
+    }
+
+    /**
+     * 基于时间上下文的推荐
+     */
+    private List<MemoryRecommendation> recommendByTimeContext() {
+        List<MemoryRecommendation> results = new ArrayList<>();
+        String timeContext = getTimeContext();
+
+        if (memory != null && memory.getLongTerm() != null) {
+            List<EpisodicEntry> episodic = memory.getLongTerm().recallEpisodic(timeContext, 3);
+            for (EpisodicEntry entry : episodic) {
+                results.add(new MemoryRecommendation(
+                    entry.id(),
+                    entry.experience(),
+                    "同时段记忆",
+                    0.5f
+                ));
+            }
+        }
+
+        return results;
+    }
+
+    /**
+     * 基于情绪的推荐
+     */
+    private List<MemoryRecommendation> recommendByMood(String mood) {
+        List<MemoryRecommendation> results = new ArrayList<>();
+
+        if (memory != null && memory.getLongTerm() != null) {
+            List<EpisodicEntry> episodic = memory.getLongTerm().recallEpisodic(mood, 5);
+            for (EpisodicEntry entry : episodic) {
+                results.add(new MemoryRecommendation(
+                    entry.id(),
+                    entry.experience(),
+                    "情绪共鸣",
+                    0.6f
+                ));
+            }
+        }
+
+        return results;
+    }
+
+    /**
+     * S20-4: 记忆推荐结果
+     */
+    public record MemoryRecommendation(
+        String memoryId,
+        String content,
+        String reason,
+        float relevanceScore
+    ) {}
 
     /**
      * 根据当前情境检索相关记忆
