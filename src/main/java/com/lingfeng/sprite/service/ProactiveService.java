@@ -1,5 +1,6 @@
 package com.lingfeng.sprite.service;
 
+import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -59,6 +60,7 @@ public class ProactiveService {
     private final MinMaxLlmReasoner llmReasoner;
     private final FeedbackTrackerService feedbackTrackerService;
     private final InteractionPreferenceLearningService preferenceLearningService;
+    private final EmotionHistoryService emotionHistoryService;
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     // 状态跟踪
@@ -77,13 +79,15 @@ public class ProactiveService {
             @Autowired ConversationService conversationService,
             @Autowired(required = false) MinMaxLlmReasoner llmReasoner,
             @Autowired FeedbackTrackerService feedbackTrackerService,
-            @Autowired InteractionPreferenceLearningService preferenceLearningService
+            @Autowired InteractionPreferenceLearningService preferenceLearningService,
+            @Autowired(required = false) EmotionHistoryService emotionHistoryService
     ) {
         this.unifiedContextService = unifiedContextService;
         this.conversationService = conversationService;
         this.llmReasoner = llmReasoner;
         this.feedbackTrackerService = feedbackTrackerService;
         this.preferenceLearningService = preferenceLearningService;
+        this.emotionHistoryService = emotionHistoryService;
 
         // 注册反馈回调 (S2-3 反馈调整机制)
         this.feedbackTrackerService.setFeedbackCallback(this::recordTriggerFeedback);
@@ -347,6 +351,7 @@ public class ProactiveService {
 
     /**
      * 判断是否应该主动联系
+     * S3-4: 增强为综合考虑情绪模式预测和联系偏好
      */
     private boolean shouldProactivelyContact() {
         // 检查冷却时间
@@ -374,13 +379,23 @@ public class ProactiveService {
             return false;
         }
 
+        // S3-4: 使用综合时机评估
         // 检查当前时间是否是联系的好时机
         LocalDateTime now = LocalDateTime.now(TIMEZONE);
         int currentHour = now.getHour();
+
+        // 基于偏好的评估
         float hourResponseProb = preferenceLearningService.getHourlyResponseProbability(currentHour);
-        if (hourResponseProb < 0.3f) {
+        if (hourResponseProb < 0.2f) {
             // 这个时间点主人响应概率很低，暂不打扰
             logger.debug("Skipping proactive contact - low response probability at hour {}", currentHour);
+            return false;
+        }
+
+        // S3-4: 综合时机评估（情绪模式 + 偏好）
+        if (!isOptimalContactTime()) {
+            logger.debug("Skipping proactive contact - not optimal contact time based on emotion patterns");
+            // 非最佳时机，但仍允许重要通知通过
             return false;
         }
 
@@ -444,6 +459,85 @@ public class ProactiveService {
             case CONFUSED -> "清晰解答";
             case NEUTRAL -> "中性友好";
         };
+    }
+
+    /**
+     * S3-4: 获取基于情绪模式预测的最佳联系分数
+     * 返回 0.0-1.0，分数越高越适合联系
+     */
+    private float getEmotionBasedContactScore() {
+        if (emotionHistoryService == null) {
+            return 0.5f; // 默认中性
+        }
+
+        try {
+            LocalDateTime now = LocalDateTime.now(TIMEZONE);
+            DayOfWeek dayOfWeek = now.getDayOfWeek();
+            int hour = now.getHour();
+
+            // 获取预测的联系分数
+            return emotionHistoryService.getPredictedContactScore(dayOfWeek, hour);
+        } catch (Exception e) {
+            logger.debug("Error getting emotion-based contact score: {}", e.getMessage());
+            return 0.5f;
+        }
+    }
+
+    /**
+     * S3-4: 检查当前是否是最佳联系时间
+     * 综合情绪模式预测和偏好学习的结果
+     */
+    private boolean isOptimalContactTime() {
+        // 获取基于情绪模式的分数
+        float emotionScore = getEmotionBasedContactScore();
+
+        // 获取基于偏好的分数
+        LocalDateTime now = LocalDateTime.now(TIMEZONE);
+        int currentHour = now.getHour();
+        float preferenceScore = preferenceLearningService.getHourlyResponseProbability(currentHour);
+
+        // 综合分数
+        float combinedScore = emotionScore * 0.5f + preferenceScore * 0.5f;
+
+        logger.debug("Contact score evaluation - emotion: {}, preference: {}, combined: {}",
+                emotionScore, preferenceScore, combinedScore);
+
+        // 综合分数 > 0.5 才认为是好时机
+        return combinedScore > 0.5f;
+    }
+
+    /**
+     * S3-4: 获取时机建议描述
+     */
+    private String getTimingAdvice() {
+        if (emotionHistoryService == null) {
+            return "数据不足";
+        }
+
+        try {
+            EmotionHistoryService.WeeklyContactAdvice advice =
+                    emotionHistoryService.getWeeklyContactAdvice();
+
+            if (advice.bestWindows().isEmpty()) {
+                return "暂无足够数据分析";
+            }
+
+            // 找出当前时间最接近的最佳窗口
+            LocalDateTime now = LocalDateTime.now(TIMEZONE);
+            DayOfWeek today = now.getDayOfWeek();
+            int currentHour = now.getHour();
+
+            String nearestWindow = advice.bestWindows().stream()
+                    .filter(w -> w.dayOfWeek() == today)
+                    .findFirst()
+                    .map(w -> String.format("%s点-%s点", w.startTime().getHour(), w.endTime().getHour()))
+                    .orElse("今日无最佳窗口");
+
+            return String.format("今日最佳: %s | 总结: %s", nearestWindow, advice.summary());
+        } catch (Exception e) {
+            logger.debug("Error getting timing advice: {}", e.getMessage());
+            return "数据不足";
+        }
     }
 
     /**

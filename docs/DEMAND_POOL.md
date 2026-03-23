@@ -21,7 +21,7 @@
 | S3-1 | 情绪历史追踪 | ✅ done | Sprint-S3 |
 | S3-2 | 周内模式识别 | ✅ done | Sprint-S3 |
 | S3-3 | 时间模式预测 | ✅ done | Sprint-S3 |
-| S3-4 | 时机优化 | todo | Sprint-S3 |
+| S3-4 | 时机优化 | ✅ done | Sprint-S3 |
 | S4-1 | 定时导出任务 | todo | Sprint-S4 |
 | S4-2 | GitHub API集成 | todo | Sprint-S4 |
 | S4-3 | 版本回溯支持 | todo | Sprint-S4 |
@@ -291,6 +291,29 @@
 **涉及文件**:
 - `EmotionHistoryService.java` (增强 - 添加预测功能)
 - `SpriteController.java` (修改 - 添加预测API端点)
+
+---
+
+### S3-4: 时机优化
+
+**所属阶段**: S3 - 情绪时间模式
+**优先级**: P1
+**状态**: done
+
+**背景/目标**: 结合情绪模式和联系偏好优化主动消息时机
+
+**实现内容**:
+1. 综合情绪模式预测和联系偏好进行时机评估
+2. 在 ProactiveService 中集成情绪历史服务
+3. 实现基于情绪模式的最佳联系分数计算
+4. 优化 shouldProactivelyContact 判断逻辑
+
+**依赖**: S3-2, S3-3, S2-2
+**验收标准**: 主动消息在最佳时机发送
+
+**涉及文件**:
+- `ProactiveService.java` (增强 - 集成情绪模式预测)
+- `EmotionHistoryService.java` (引用 - 获取联系分数)
 
 ---
 

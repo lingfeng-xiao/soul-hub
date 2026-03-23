@@ -61,6 +61,7 @@
 1. S3-1: 情绪历史追踪
 2. S3-2: 周内模式识别
 3. S3-3: 时间模式预测
+4. S3-4: 时机优化
 
 ### 任务状态
 
@@ -69,6 +70,7 @@
 | S3-1 | 情绪历史追踪 | ✅ done | - | 2026-03-23 | 2026-03-23 |
 | S3-2 | 周内模式识别 | ✅ done | - | 2026-03-23 | 2026-03-23 |
 | S3-3 | 时间模式预测 | ✅ done | - | 2026-03-23 | 2026-03-23 |
+| S3-4 | 时机优化 | ✅ done | - | 2026-03-23 | 2026-03-23 |
 
 ### 完成内容
 - S3-1:
@@ -94,6 +96,12 @@
   - 添加 `predictTomorrowEmotion()` - 预测明天的情绪
   - 新增 `/api/sprite/emotions/predict` 端点
   - 新增 `/api/sprite/emotions/trend` 端点
+- S3-4:
+  - 增强 `ProactiveService.java` - 集成情绪历史服务
+  - 添加 `getEmotionBasedContactScore()` - 获取基于情绪模式的联系分数
+  - 添加 `isOptimalContactTime()` - 综合时机评估
+  - 添加 `getTimingAdvice()` - 获取时机建议
+  - 优化 `shouldProactivelyContact()` - 使用综合时机评估
 
 ---
 
