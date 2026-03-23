@@ -178,6 +178,8 @@ public class DecisionEngine {
         for (DecisionDimension dim : DecisionDimension.values()) {
             dimensionWeights.put(dim, dim.defaultWeight());
         }
+        // S6-4: 初始化默认决策规则
+        initializeDefaultRules();
     }
 
     /**
@@ -932,6 +934,245 @@ public class DecisionEngine {
      */
     public void clearDecisionHistory() {
         decisionHistory.clear();
+    }
+
+    // S6-4: 决策规则列表
+    private final List<DecisionRule> decisionRules = new ArrayList<>();
+    // S6-4: 规则匹配日志
+    private final List<RuleMatchLog> ruleMatchLogs = new ArrayList<>();
+    private static final int MAX_RULE_LOG_SIZE = 50;
+
+    /**
+     * S6-4: 初始化默认决策规则
+     */
+    private void initializeDefaultRules() {
+        // 紧急告警规则
+        decisionRules.add(new DecisionRule(
+                "URGENCY_HIGH",
+                "紧急显著性告警 - 当显著性整体分数>0.8时",
+                List.of(DecisionDimension.URGENCY, DecisionDimension.RELEVANCE),
+                0.8f,
+                "NotifyAction",
+                100,
+                true
+        ));
+
+        // 主人情绪波动规则
+        decisionRules.add(new DecisionRule(
+                "EMOTION_NEGATIVE",
+                "主人负面情绪 - 当主人情绪为焦虑或沮丧时",
+                List.of(DecisionDimension.EMOTION),
+                0.6f,
+                "NotifyAction",
+                85,
+                true
+        ));
+
+        // 记忆触发规则
+        decisionRules.add(new DecisionRule(
+                "MEMORY_POSITIVE",
+                "正面记忆触发 - 当检索到正面情感记忆时",
+                List.of(DecisionDimension.MEMORY),
+                0.5f,
+                "Remember",
+                60,
+                true
+        ));
+
+        // 时间上下文规则
+        decisionRules.add(new DecisionRule(
+                "TIME_LEISURE",
+                "休闲时间 - 当主人处于休闲状态时",
+                List.of(DecisionDimension.TIME_CONTEXT),
+                0.7f,
+                "NotifyAction",
+                70,
+                true
+        ));
+
+        // 意图识别规则
+        decisionRules.add(new DecisionRule(
+                "INTENT_ACTION",
+                "意图识别动作 - 当LLM推理识别到主人意图时",
+                List.of(DecisionDimension.RELEVANCE, DecisionDimension.NOVELTY),
+                0.5f,
+                "NotifyAction",
+                80,
+                true
+        ));
+    }
+
+    /**
+     * S6-4: 获取所有决策规则
+     */
+    public List<DecisionRule> getDecisionRules() {
+        return new ArrayList<>(decisionRules);
+    }
+
+    /**
+     * S6-4: 添加自定义决策规则
+     */
+    public void addDecisionRule(DecisionRule rule) {
+        decisionRules.add(rule);
+    }
+
+    /**
+     * S6-4: 启用/禁用规则
+     */
+    public void setRuleEnabled(String ruleId, boolean enabled) {
+        for (int i = 0; i < decisionRules.size(); i++) {
+            if (decisionRules.get(i).ruleId().equals(ruleId)) {
+                DecisionRule oldRule = decisionRules.get(i);
+                decisionRules.set(i, new DecisionRule(
+                        oldRule.ruleId(),
+                        oldRule.description(),
+                        oldRule.dimensions(),
+                        oldRule.conditionThreshold(),
+                        oldRule.actionType(),
+                        oldRule.priority(),
+                        enabled
+                ));
+                break;
+            }
+        }
+    }
+
+    /**
+     * S6-4: 更新规则权重
+     */
+    public void updateRulePriority(String ruleId, int newPriority) {
+        for (int i = 0; i < decisionRules.size(); i++) {
+            if (decisionRules.get(i).ruleId().equals(ruleId)) {
+                DecisionRule oldRule = decisionRules.get(i);
+                decisionRules.set(i, new DecisionRule(
+                        oldRule.ruleId(),
+                        oldRule.description(),
+                        oldRule.dimensions(),
+                        oldRule.conditionThreshold(),
+                        oldRule.actionType(),
+                        newPriority,
+                        oldRule.enabled()
+                ));
+                break;
+            }
+        }
+    }
+
+    /**
+     * S6-4: 匹配决策规则
+     */
+    public RuleMatchResult matchRules(MultiDimensionalEvaluation evaluation) {
+        List<DecisionRule> matchedRules = new ArrayList<>();
+        float highestScore = 0f;
+        StringBuilder reasoning = new StringBuilder();
+
+        for (DecisionRule rule : decisionRules) {
+            if (!rule.enabled()) continue;
+
+            float matchScore = calculateRuleMatchScore(rule, evaluation);
+            boolean matched = matchScore >= rule.conditionThreshold();
+
+            // 记录匹配日志
+            Map<String, Float> dimensionScores = new HashMap<>();
+            if (evaluation != null && evaluation.dimensionScores() != null) {
+                for (DimensionScore ds : evaluation.dimensionScores()) {
+                    dimensionScores.put(ds.dimension().name(), ds.rawScore());
+                }
+            }
+
+            RuleMatchLog log = new RuleMatchLog(
+                    Instant.now(),
+                    rule.ruleId(),
+                    rule.description(),
+                    matchScore,
+                    matched,
+                    dimensionScores
+            );
+            ruleMatchLogs.add(log);
+
+            // 保持日志在限制范围内
+            while (ruleMatchLogs.size() > MAX_RULE_LOG_SIZE) {
+                ruleMatchLogs.remove(0);
+            }
+
+            if (matched) {
+                matchedRules.add(rule);
+                if (matchScore > highestScore) {
+                    highestScore = matchScore;
+                }
+                reasoning.append(String.format("[%s] 匹配度=%.2f; ", rule.ruleId(), matchScore));
+            }
+        }
+
+        // 按优先级排序
+        matchedRules.sort((a, b) -> Integer.compare(b.priority(), a.priority()));
+
+        return new RuleMatchResult(matchedRules, highestScore, reasoning.toString());
+    }
+
+    /**
+     * S6-4: 计算规则匹配分数
+     */
+    private float calculateRuleMatchScore(DecisionRule rule, MultiDimensionalEvaluation evaluation) {
+        if (evaluation == null || evaluation.dimensionScores() == null) {
+            return 0f;
+        }
+
+        float totalScore = 0f;
+        int matchedDimensions = 0;
+
+        for (DecisionDimension dim : rule.dimensions()) {
+            for (DimensionScore ds : evaluation.dimensionScores()) {
+                if (ds.dimension() == dim) {
+                    totalScore += ds.weightedScore();
+                    matchedDimensions++;
+                    break;
+                }
+            }
+        }
+
+        return matchedDimensions > 0 ? totalScore / matchedDimensions : 0f;
+    }
+
+    /**
+     * S6-4: 获取规则匹配日志
+     */
+    public List<RuleMatchLog> getRuleMatchLogs() {
+        return new ArrayList<>(ruleMatchLogs);
+    }
+
+    /**
+     * S6-4: 获取决策规则可视化
+     */
+    public DecisionRuleVisualization getRuleVisualization() {
+        // 构建维度描述
+        Map<String, String> dimensionDescriptions = new HashMap<>();
+        for (DecisionDimension dim : DecisionDimension.values()) {
+            dimensionDescriptions.put(dim.name(), dim.description());
+        }
+
+        // 构建当前维度权重
+        Map<String, Float> currentWeights = new HashMap<>();
+        for (Map.Entry<DecisionDimension, Float> entry : dimensionWeights.entrySet()) {
+            currentWeights.put(entry.getKey().name(), entry.getValue());
+        }
+
+        String strategy = "综合多维度评估: " +
+                "显著性(" + (dimensionWeights.get(DecisionDimension.NOVELTY) +
+                dimensionWeights.get(DecisionDimension.RELEVANCE) +
+                dimensionWeights.get(DecisionDimension.URGENCY)) + ") + " +
+                "情绪(" + dimensionWeights.get(DecisionDimension.EMOTION) + ") + " +
+                "时间(" + dimensionWeights.get(DecisionDimension.TIME_CONTEXT) + ") + " +
+                "记忆(" + dimensionWeights.get(DecisionDimension.MEMORY) + ") + " +
+                "偏好(" + dimensionWeights.get(DecisionDimension.PREFERENCE) + ")";
+
+        return new DecisionRuleVisualization(
+                new ArrayList<>(decisionRules),
+                new ArrayList<>(ruleMatchLogs),
+                dimensionDescriptions,
+                currentWeights,
+                strategy
+        );
     }
 
     /**
