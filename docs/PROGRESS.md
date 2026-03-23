@@ -20,6 +20,7 @@
 |----|------|------|--------|----------|----------|
 | S2-1 | 主人响应追踪 | ✅ done | - | 2026-03-23 | 2026-03-23 |
 | S2-2 | 交互偏好学习 | ✅ done | - | 2026-03-23 | 2026-03-23 |
+| S2-3 | 反馈调整机制 | ✅ done | - | 2026-03-23 | 2026-03-23 |
 
 ### 完成内容
 - S2-1:
@@ -37,6 +38,12 @@
   - 增强 `ProactiveService.java` - 根据偏好调整消息策略
   - 增强 `UnifiedContextService.java` - 添加 `getWorldModelOptional()` 方法
   - 增强 `SpriteController.java` - 添加 `/api/sprite/preferences` 端点
+- S2-3:
+  - 增强 `FeedbackTrackerService.java` - 添加触发类型效果追踪
+  - 添加 `FeedbackCallback` 回调接口
+  - 添加 `TriggerEffectiveness` 记录类型
+  - 增强 `ProactiveService.java` - 注册反馈回调
+  - 根据触发类型效果动态调整冷却时间
 
 ---
 

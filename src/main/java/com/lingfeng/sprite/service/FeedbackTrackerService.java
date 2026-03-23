@@ -27,6 +27,7 @@ import com.lingfeng.sprite.OwnerModel.ProactiveFeedback.ResponseType;
  * 2. 检测主人是否对主动消息做出响应
  * 3. 判断响应类型（正向/负向/无响应）
  * 4. 存储反馈历史
+ * 5. 提供触发类型效果反馈给 ProactiveService (S2-3)
  */
 @Service
 public class FeedbackTrackerService {
@@ -52,8 +53,28 @@ public class FeedbackTrackerService {
     // 已完成的反馈历史
     private final Map<String, ProactiveFeedback> feedbackHistory = new ConcurrentHashMap<>();
 
+    // 触发类型效果追踪 (triggerType -> effectiveness)
+    private final Map<String, TriggerEffectiveness> triggerEffectiveness = new ConcurrentHashMap<>();
+
     // 最后检测到主人活动的时间
     private volatile Instant lastOwnerActivityTime = Instant.now();
+
+    // 反馈回调接口 (S2-3 反馈调整机制)
+    public interface FeedbackCallback {
+        void onTriggerFeedback(String triggerType, boolean positive);
+    }
+    private FeedbackCallback feedbackCallback;
+
+    /**
+     * 触发类型效果统计
+     */
+    public record TriggerEffectiveness(
+            String triggerType,
+            float score,
+            int positiveCount,
+            int negativeCount,
+            Instant lastUpdated
+    ) {}
 
     public FeedbackTrackerService(
             @Autowired UnifiedContextService unifiedContextService
@@ -164,6 +185,11 @@ public class FeedbackTrackerService {
                             pending.messageId, pending.response);
 
                     updateInteractionHistory(feedback);
+
+                    // S2-3: 记录触发类型效果反馈
+                    recordTriggerEffectiveness(pending.triggerType, true);
+                    invokeFeedbackCallback(pending.triggerType, true);
+
                     break; // 只处理最早的一条
                 }
             }
@@ -304,6 +330,74 @@ public class FeedbackTrackerService {
         Instant expiryThreshold = Instant.now().minus(FEEDBACK_EXPIRY);
         feedbackHistory.entrySet().removeIf(entry ->
                 entry.getValue().sentTime().isBefore(expiryThreshold));
+    }
+
+    // ========== S2-3: 反馈调整机制 ==========
+
+    /**
+     * 设置反馈回调
+     */
+    public void setFeedbackCallback(FeedbackCallback callback) {
+        this.feedbackCallback = callback;
+    }
+
+    /**
+     * 记录触发类型效果
+     */
+    private void recordTriggerEffectiveness(String triggerType, boolean positive) {
+        TriggerEffectiveness current = triggerEffectiveness.computeIfAbsent(
+                triggerType,
+                k -> new TriggerEffectiveness(k, 0f, 0, 0, Instant.now())
+        );
+
+        TriggerEffectiveness updated = positive
+                ? new TriggerEffectiveness(triggerType, current.score() + 0.1f,
+                        current.positiveCount() + 1, current.negativeCount(), Instant.now())
+                : new TriggerEffectiveness(triggerType, current.score() - 0.15f,
+                        current.positiveCount(), current.negativeCount() + 1, Instant.now());
+
+        triggerEffectiveness.put(triggerType, updated);
+        logger.debug("Updated trigger effectiveness: type={}, score={}, positive={}, negative={}",
+                triggerType, updated.score(), updated.positiveCount(), updated.negativeCount());
+    }
+
+    /**
+     * 调用反馈回调
+     */
+    private void invokeFeedbackCallback(String triggerType, boolean positive) {
+        if (feedbackCallback != null) {
+            try {
+                feedbackCallback.onTriggerFeedback(triggerType, positive);
+            } catch (Exception e) {
+                logger.warn("Error invoking feedback callback: {}", e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * 获取触发类型效果
+     */
+    public TriggerEffectiveness getTriggerEffectiveness(String triggerType) {
+        return triggerEffectiveness.getOrDefault(triggerType,
+                new TriggerEffectiveness(triggerType, 0f, 0, 0, Instant.now()));
+    }
+
+    /**
+     * 获取所有触发类型效果
+     */
+    public Map<String, TriggerEffectiveness> getAllTriggerEffectiveness() {
+        return Map.copyOf(triggerEffectiveness);
+    }
+
+    /**
+     * 获取触发类型的响应率
+     */
+    public float getTriggerResponseRate(String triggerType) {
+        TriggerEffectiveness te = triggerEffectiveness.get(triggerType);
+        if (te == null || (te.positiveCount() + te.negativeCount()) == 0) {
+            return 0.5f; // 默认50%
+        }
+        return (float) te.positiveCount() / (te.positiveCount() + te.negativeCount());
     }
 
     /**

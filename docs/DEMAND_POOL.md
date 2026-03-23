@@ -16,7 +16,7 @@
 |----|------|------|------|
 | S2-1 | 主人响应追踪 | ✅ done | Sprint-S2 |
 | S2-2 | 交互偏好学习 | ✅ done | Sprint-S2 |
-| S2-3 | 反馈调整机制 | todo | Sprint-S2 |
+| S2-3 | 反馈调整机制 | ✅ done | Sprint-S2 |
 | S2-4 | 情绪响应模型 | todo | Sprint-S2 |
 | S3-1 | 情绪历史追踪 | todo | Sprint-S3 |
 | S3-2 | 周内模式识别 | todo | Sprint-S3 |
@@ -178,6 +178,28 @@
 - `ProactiveService.java` (修改)
 - `UnifiedContextService.java` (修改)
 - `SpriteController.java` (修改)
+
+---
+
+### S2-3: 反馈调整机制
+
+**所属阶段**: S2 - 主人反馈学习
+**优先级**: P1
+**状态**: done
+
+**背景/目标**: 根据主人反馈调整行为策略
+
+**实现内容**:
+1. 当主人正向反馈时，增加该类型消息的发送频率
+2. 当主人负向反馈时，降低该类型消息的发送频率
+3. 动态调整主动消息的内容策略
+
+**依赖**: S2-1, S2-2
+**验收标准**: 能根据主人反馈动态调整行为策略
+
+**涉及文件**:
+- `FeedbackTrackerService.java` (修改)
+- `ProactiveService.java` (修改)
 
 ---
 

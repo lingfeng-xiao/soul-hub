@@ -85,8 +85,45 @@ public class ProactiveService {
         this.feedbackTrackerService = feedbackTrackerService;
         this.preferenceLearningService = preferenceLearningService;
 
+        // 注册反馈回调 (S2-3 反馈调整机制)
+        this.feedbackTrackerService.setFeedbackCallback(this::recordTriggerFeedback);
+
         // 启动主动检查
         startProactiveMonitoring();
+
+        logger.info("ProactiveService started with feedback adjustment enabled");
+    }
+
+    /**
+     * 记录触发类型的反馈
+     * 由 FeedbackTrackerService 在收到主人回复后调用
+     */
+    public void recordTriggerFeedback(String triggerType, boolean positive) {
+        // 反馈已被 FeedbackTrackerService 记录，这里只做日志
+        logger.info("Received trigger feedback: type={}, positive={}", triggerType, positive);
+    }
+
+    /**
+     * 获取触发类型的效果分数
+     * 从 FeedbackTrackerService 获取
+     */
+    private float getTriggerEffectiveness(String triggerType) {
+        FeedbackTrackerService.TriggerEffectiveness te =
+                feedbackTrackerService.getTriggerEffectiveness(triggerType);
+        return te.score();
+    }
+
+    /**
+     * 获取触发类型的调整后冷却时间
+     * 效果好的触发类型冷却时间短，效果差的冷却时间长
+     */
+    private Duration getAdjustedCooldown(String triggerType) {
+        float effectiveness = getTriggerEffectiveness(triggerType);
+        // 基础冷却15分钟，效果好减少到5分钟，效果差增加到45分钟
+        long baseMinutes = PROACTIVE_COOLDOWN.toMinutes();
+        // 效果分数范围是 -0.5 到 +0.5，乘以40得到 -20 到 +20 分钟调整
+        long adjustment = (long) (effectiveness * 40);
+        return Duration.ofMinutes(Math.max(5, Math.min(45, baseMinutes - adjustment)));
     }
 
     private void startProactiveMonitoring() {
