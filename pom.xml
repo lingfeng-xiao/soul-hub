@@ -51,6 +51,13 @@
             <version>${jackson.version}</version>
         </dependency>
 
+        <!-- Jakarta Mail (for EmailAction) -->
+        <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>jakarta.mail</artifactId>
+            <version>2.0.1</version>
+        </dependency>
+
         <!-- Spring Boot -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
