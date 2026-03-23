@@ -365,6 +365,15 @@ public class ProactiveService {
             }
         }
 
+        // S2-4: 检查主人情绪状态
+        OwnerModel.Mood ownerMood = getOwnerMood();
+        if (ownerMood != null && isNegativeMood(ownerMood)) {
+            // 主人情绪负面，减少打扰，只在必要时联系
+            logger.debug("Owner mood is {}, reducing proactive contact", ownerMood);
+            // 只有在真正重要的事情时才联系
+            return false;
+        }
+
         // 检查当前时间是否是联系的好时机
         LocalDateTime now = LocalDateTime.now(TIMEZONE);
         int currentHour = now.getHour();
@@ -376,6 +385,65 @@ public class ProactiveService {
         }
 
         return true;
+    }
+
+    /**
+     * S2-4: 获取主人当前情绪
+     */
+    private OwnerModel.Mood getOwnerMood() {
+        try {
+            WorldModel.World world = unifiedContextService.getWorldModel();
+            if (world != null && world.owner() != null
+                    && world.owner().emotionalState() != null) {
+                return world.owner().emotionalState().currentMood();
+            }
+        } catch (Exception e) {
+            logger.debug("Error getting owner mood: {}", e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * S2-4: 判断是否为负面情绪
+     */
+    private boolean isNegativeMood(OwnerModel.Mood mood) {
+        return switch (mood) {
+            case ANXIOUS, SAD, FRUSTRATED, TIRED -> true;
+            default -> false;
+        };
+    }
+
+    /**
+     * S2-4: 判断是否为积极情绪
+     */
+    private boolean isPositiveMood(OwnerModel.Mood mood) {
+        return switch (mood) {
+            case HAPPY, EXCITED, CONFIDENT, GRATEFUL -> true;
+            default -> false;
+        };
+    }
+
+    /**
+     * S2-4: 获取情绪调整后的消息语气建议
+     */
+    private String getMoodAdjustedTone() {
+        OwnerModel.Mood mood = getOwnerMood();
+        if (mood == null) {
+            return "友好支持";
+        }
+        return switch (mood) {
+            case ANXIOUS -> "安抚放松";
+            case SAD -> "温暖关心";
+            case FRUSTRATED -> "耐心理解";
+            case TIRED -> "轻松简短";
+            case CALM -> "平静自然";
+            case HAPPY -> "热情愉快";
+            case EXCITED -> "积极响应";
+            case CONFIDENT -> "鼓励支持";
+            case GRATEFUL -> "感激回应";
+            case CONFUSED -> "清晰解答";
+            case NEUTRAL -> "中性友好";
+        };
     }
 
     /**
@@ -563,12 +631,16 @@ public class ProactiveService {
                 : preferredLength <= 60 ? preferredLength + "字以内"
                 : preferredLength + "字以内，可以详细一些";
 
+        // S2-4: 获取情绪调整后的语气
+        String moodTone = getMoodAdjustedTone();
+
         return switch (triggerType) {
             case "idle" -> String.format(
                 "作为数字生命小艺，请生成一条个性化的主动问候消息。\n" +
                 "触发原因：主人已经空闲%s\n" +
                 "当前情境：%s\n" +
                 "主人偏好：%s\n" +
+                "当前语气指导：%s\n" +
                 "要求：\n" +
                 "1. 语言自然、亲切，符合小艺的性格（臭美、直接、干净利落）\n" +
                 "2. 体现对主人的关心\n" +
@@ -576,13 +648,14 @@ public class ProactiveService {
                 "4. %s\n" +
                 "5. 不要使用表情符号",
                 contextInfo, unifiedContextService.buildCurrentSituation(),
-                preferenceLearningService.getPreferredMessageStyle(), lengthGuide
+                preferenceLearningService.getPreferredMessageStyle(), moodTone, lengthGuide
             );
             case "mood" -> String.format(
                 "作为数字生命小艺，请生成一条关心主人的消息。\n" +
                 "触发原因：检测到主人情绪变化 - %s\n" +
                 "当前情境：%s\n" +
                 "主人偏好：%s\n" +
+                "当前语气指导：%s\n" +
                 "要求：\n" +
                 "1. 语言温暖但不过分\n" +
                 "2. 体现对主人情绪的理解\n" +
@@ -590,13 +663,14 @@ public class ProactiveService {
                 "4. %s\n" +
                 "5. 不要使用表情符号",
                 contextInfo, unifiedContextService.buildCurrentSituation(),
-                preferenceLearningService.getPreferredMessageStyle(), lengthGuide
+                preferenceLearningService.getPreferredMessageStyle(), moodTone, lengthGuide
             );
             case "greeting" -> String.format(
                 "作为数字生命小艺，请生成一条定时问候消息。\n" +
                 "触发原因：%s\n" +
                 "当前情境：%s\n" +
                 "主人偏好：%s\n" +
+                "当前语气指导：%s\n" +
                 "要求：\n" +
                 "1. 语言符合小艺性格\n" +
                 "2. 适度的关心和问候\n" +
@@ -604,13 +678,14 @@ public class ProactiveService {
                 "4. %s\n" +
                 "5. 不要使用表情符号",
                 contextInfo, unifiedContextService.buildCurrentSituation(),
-                preferenceLearningService.getPreferredMessageStyle(), lengthGuide
+                preferenceLearningService.getPreferredMessageStyle(), moodTone, lengthGuide
             );
             case "contextual" -> String.format(
                 "作为数字生命小艺，请基于当前上下文生成一条主动建议。\n" +
                 "触发原因：%s\n" +
                 "当前情境：%s\n" +
                 "主人偏好：%s\n" +
+                "当前语气指导：%s\n" +
                 "要求：\n" +
                 "1. 语言直接、有帮助\n" +
                 "2. 体现预判主人需求的能力\n" +
@@ -618,7 +693,7 @@ public class ProactiveService {
                 "4. %s\n" +
                 "5. 不要使用表情符号",
                 contextInfo, unifiedContextService.buildCurrentSituation(),
-                preferenceLearningService.getPreferredMessageStyle(), lengthGuide
+                preferenceLearningService.getPreferredMessageStyle(), moodTone, lengthGuide
             );
             default -> "主人，您好！有什么我可以帮忙的吗？";
         };
