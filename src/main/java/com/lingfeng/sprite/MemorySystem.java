@@ -723,6 +723,20 @@ public final class MemorySystem {
         }
 
         /**
+         * 获取所有感知记忆（用于可视化）
+         */
+        public List<PerceptiveEntry> getAllPerceptive() {
+            return new ArrayList<>(perceptive);
+        }
+
+        /**
+         * 获取所有记忆类型的统计数据（用于可视化）
+         */
+        public MemoryStats getStats() {
+            return new MemoryStats(episodic.size(), semantic.size(), procedural.size(), perceptive.size());
+        }
+
+        /**
          * 持久化情景记忆包装器
          */
         public record PersistedEpisodicList(List<EpisodicEntry> entries) {}

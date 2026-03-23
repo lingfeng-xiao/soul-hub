@@ -298,6 +298,13 @@ public class SpriteService {
     }
 
     /**
+     * S12-1: 获取Memory对象供Dashboard可视化使用
+     */
+    public MemorySystem.Memory getMemory() {
+        return memory;
+    }
+
+    /**
      * 获取进化状态
      */
     public EvolutionEngine.EvolutionStatus getEvolutionStatus() {

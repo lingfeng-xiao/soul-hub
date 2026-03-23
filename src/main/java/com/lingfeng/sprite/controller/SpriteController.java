@@ -5,7 +5,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.time.Instant;
 
 import com.lingfeng.sprite.cognition.CognitionController;
 import com.lingfeng.sprite.EvolutionEngine;
@@ -16,6 +19,7 @@ import com.lingfeng.sprite.service.GitHubBackupService;
 import com.lingfeng.sprite.service.HealthMonitorService;
 import com.lingfeng.sprite.service.InteractionPreferenceLearningService;
 import com.lingfeng.sprite.service.EmotionHistoryService;
+import com.lingfeng.sprite.service.MemoryVisualizationService;
 import com.lingfeng.sprite.service.SpriteService;
 
 /**
@@ -33,6 +37,7 @@ public class SpriteController {
     private final InteractionPreferenceLearningService preferenceLearningService;
     private final EmotionHistoryService emotionHistoryService;
     private final GitHubBackupService gitHubBackupService;
+    private final MemoryVisualizationService memoryVisualizationService;
 
     public SpriteController(
             SpriteService spriteService,
@@ -40,7 +45,8 @@ public class SpriteController {
             FeedbackTrackerService feedbackTrackerService,
             InteractionPreferenceLearningService preferenceLearningService,
             EmotionHistoryService emotionHistoryService,
-            GitHubBackupService gitHubBackupService
+            GitHubBackupService gitHubBackupService,
+            MemoryVisualizationService memoryVisualizationService
     ) {
         this.spriteService = spriteService;
         this.healthMonitorService = healthMonitorService;
@@ -48,6 +54,7 @@ public class SpriteController {
         this.preferenceLearningService = preferenceLearningService;
         this.emotionHistoryService = emotionHistoryService;
         this.gitHubBackupService = gitHubBackupService;
+        this.memoryVisualizationService = memoryVisualizationService;
     }
 
     /**
@@ -90,6 +97,33 @@ public class SpriteController {
     public ResponseEntity<MemorySystem.MemoryStatus> getMemoryStatus() {
         MemorySystem.MemoryStatus status = spriteService.getMemoryStatus();
         return ResponseEntity.ok(status);
+    }
+
+    /**
+     * S12-1: GET /api/sprite/memory/visualization - 获取记忆可视化数据（连接真实MemorySystem）
+     */
+    @GetMapping("/memory/visualization")
+    public ResponseEntity<MemoryVisualizationService.MemoryVisualizationData> getMemoryVisualization() {
+        MemorySystem.Memory memory = spriteService.getMemory();
+        MemoryVisualizationService.MemoryVisualizationData data =
+                memoryVisualizationService.generateVisualization(memory);
+        return ResponseEntity.ok(data);
+    }
+
+    /**
+     * S12-1: GET /api/sprite/memory/timeline - 获取记忆时间线（连接真实MemorySystem）
+     * @param startDate ISO格式开始日期（可选，默认30天前）
+     * @param endDate ISO格式结束日期（可选，默认当前时间）
+     */
+    @GetMapping("/memory/timeline")
+    public ResponseEntity<MemoryVisualizationService.MemoryTimeline> getMemoryTimeline(
+            @RequestParam(required = false) Instant startDate,
+            @RequestParam(required = false) Instant endDate
+    ) {
+        MemorySystem.Memory memory = spriteService.getMemory();
+        MemoryVisualizationService.MemoryTimeline timeline =
+                memoryVisualizationService.generateTimeline(memory, startDate, endDate);
+        return ResponseEntity.ok(timeline);
     }
 
     /**
