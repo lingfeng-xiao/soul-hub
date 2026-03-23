@@ -12,7 +12,7 @@
 |------|------|------|
 | S1 | 可靠性加固 | **✅ 已完成** |
 | S2 | 主人反馈学习 | **✅ 已完成** |
-| S3 | 情绪时间模式 | 待开始 |
+| S3 | 情绪时间模式 | **进行中** |
 | S4 | 记忆GitHub持久化 | 待开始 |
 | S5 | 传感器系统加固 | 待开始 |
 | S6 | 决策引擎增强 | 待开始 |
@@ -21,7 +21,7 @@
 | S9 | 感知系统扩展 | 待开始 |
 | S10 | 可观测性建设 | 待开始 |
 
-**整体进度**: 55% (S1完成 + S2完成 + 文档建立)
+**整体进度**: 60% (S1完成 + S2完成 + S3-1,2完成)
 
 ---
 
@@ -65,6 +65,27 @@ S2-1 (主人响应追踪)、S2-2 (交互偏好学习)、S2-3 (反馈调整机制
 
 ---
 
+## Sprint-S3 完成内容
+
+### S3-1: 情绪历史追踪 ✅
+- 新增 `EmotionHistoryService.java` - 情绪历史服务
+- 增强 `WorldBuilder.java` - 添加情绪记录回调
+- 情绪按日期索引存储
+- 支持情绪统计查询（按日期、周模式）
+- 新增 `/api/sprite/emotions` 和 `/api/sprite/emotions/weekly` 端点
+
+### S3-2: 周内模式识别 ✅
+- 增强 `EmotionHistoryService.java` - 添加最优联系窗口分析
+- 添加 `OptimalContactWindow` 和 `WeeklyContactAdvice` 记录类型
+- 添加 `getOptimalContactWindows()` - 获取最优联系时间窗口
+- 添加 `getWeeklyContactAdvice()` - 获取每周联系建议
+- 添加 `getPredictedMoodForDay()` - 预测某日情绪
+- 添加 `getPredictedContactScore()` - 获取联系分数
+- 新增 `/api/sprite/emotions/contact-advice` 端点
+- 新增 `/api/sprite/emotions/optimal-windows` 端点
+
+---
+
 ## Sprint-S1 完成内容
 
 ### S1-1: 服务器内存告警监控 ✅
@@ -85,8 +106,8 @@ S2-1 (主人响应追踪)、S2-2 (交互偏好学习)、S2-3 (反馈调整机制
 
 ## 下一步最优先
 
-1. **S3-1: 情绪历史追踪** - P1优先级，建立长期情绪追踪数据
-2. **S3-2: 周内模式识别** - P1优先级，识别周内情绪模式
+1. **S3-3: 时间模式预测** - P1优先级，基于历史数据进行时间模式预测
+2. **S3-4: 时机优化** - P1优先级，结合情绪模式和联系偏好优化主动消息时机
 
 ---
 
@@ -102,8 +123,10 @@ S2-1 (主人响应追踪)、S2-2 (交互偏好学习)、S2-3 (反馈调整机制
 | `HealthMonitorService.java` | 新增(S1) | 健康监控服务 |
 | `FeedbackTrackerService.java` | 新增(S2-1) | 主人响应追踪服务 |
 | `InteractionPreferenceLearningService.java` | 新增(S2-2) | 交互偏好学习服务 |
+| `EmotionHistoryService.java` | 新增+增强(S3-1,S3-2) | 情绪历史服务 + 周模式分析 |
+| `WorldBuilder.java` | 修改(S3-1) | 添加情绪记录回调 |
 | `MinMaxLlmReasoner.java` | 修改(S1) | 失败追踪和降级处理 |
-| `SpriteController.java` | 修改(S1,S2) | S1健康检查; S2反馈和偏好端点 |
+| `SpriteController.java` | 修改(S1,S2,S3) | S1健康检查; S2反馈和偏好端点; S3情绪API |
 | `ProactiveService.java` | 修改(S2) | 集成反馈追踪和偏好学习 |
 | `ConversationService.java` | 修改(S2) | 通知反馈追踪器 |
 | `OwnerModel.java` | 修改(S2) | 新增ProactiveFeedback和交互类型 |

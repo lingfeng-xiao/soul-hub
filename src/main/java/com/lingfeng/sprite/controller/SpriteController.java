@@ -159,6 +159,25 @@ public class SpriteController {
     }
 
     /**
+     * S3-2: GET /api/sprite/emotions/contact-advice - 获取每周联系建议
+     */
+    @GetMapping("/emotions/contact-advice")
+    public ResponseEntity<EmotionHistoryService.WeeklyContactAdvice> getContactAdvice() {
+        EmotionHistoryService.WeeklyContactAdvice advice = emotionHistoryService.getWeeklyContactAdvice();
+        return ResponseEntity.ok(advice);
+    }
+
+    /**
+     * S3-2: GET /api/sprite/emotions/optimal-windows - 获取最优联系时间窗口
+     */
+    @GetMapping("/emotions/optimal-windows")
+    public ResponseEntity<List<EmotionHistoryService.OptimalContactWindow>> getOptimalContactWindows() {
+        List<EmotionHistoryService.OptimalContactWindow> windows =
+                emotionHistoryService.getOptimalContactWindows();
+        return ResponseEntity.ok(windows);
+    }
+
+    /**
      * POST /api/sprite/start - 启动 Sprite
      */
     @PostMapping("/start")

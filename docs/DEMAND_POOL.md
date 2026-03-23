@@ -19,7 +19,7 @@
 | S2-3 | 反馈调整机制 | ✅ done | Sprint-S2 |
 | S2-4 | 情绪响应模型 | ✅ done | Sprint-S2 |
 | S3-1 | 情绪历史追踪 | ✅ done | Sprint-S3 |
-| S3-2 | 周内模式识别 | todo | Sprint-S3 |
+| S3-2 | 周内模式识别 | ✅ done | Sprint-S3 |
 | S3-3 | 时间模式预测 | todo | Sprint-S3 |
 | S3-4 | 时机优化 | todo | Sprint-S3 |
 | S4-1 | 定时导出任务 | todo | Sprint-S4 |
@@ -245,6 +245,29 @@
 - `WorldBuilder.java` (修改 - 添加情绪记录回调)
 - `EmotionHistoryService.java` (新增 - 情绪历史服务)
 - `SpriteController.java` (修改 - 添加情绪API端点)
+
+---
+
+### S3-2: 周内模式识别
+
+**所属阶段**: S3 - 情绪时间模式
+**优先级**: P1
+**状态**: done
+
+**背景/目标**: 识别周内情绪模式，预测最优联系时间
+
+**实现内容**:
+1. 分析历史情绪数据，识别周内模式
+2. 计算不同时间窗口的情绪分数
+3. 生成最优联系时间窗口建议
+4. 提供每周联系建议和最佳联系日期
+
+**依赖**: S3-1 (情绪历史追踪)
+**验收标准**: 能提供最佳联系时间建议
+
+**涉及文件**:
+- `EmotionHistoryService.java` (增强 - 添加周模式分析)
+- `SpriteController.java` (修改 - 添加联系建议API端点)
 
 ---
 

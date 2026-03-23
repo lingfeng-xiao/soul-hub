@@ -59,19 +59,31 @@
 
 ### 阶段目标
 1. S3-1: 情绪历史追踪
+2. S3-2: 周内模式识别
 
 ### 任务状态
 
 | ID | 任务 | 状态 | 负责人 | 开始日期 | 完成日期 |
 |----|------|------|--------|----------|----------|
 | S3-1 | 情绪历史追踪 | ✅ done | - | 2026-03-23 | 2026-03-23 |
+| S3-2 | 周内模式识别 | ✅ done | - | 2026-03-23 | 2026-03-23 |
 
 ### 完成内容
-- 新增 `EmotionHistoryService.java` - 情绪历史服务
-- 增强 `WorldBuilder.java` - 添加情绪记录回调
-- 情绪按日期索引存储
-- 支持情绪统计查询（按日期、周模式）
-- 新增 `/api/sprite/emotions` 和 `/api/sprite/emotions/weekly` 端点
+- S3-1:
+  - 新增 `EmotionHistoryService.java` - 情绪历史服务
+  - 增强 `WorldBuilder.java` - 添加情绪记录回调
+  - 情绪按日期索引存储
+  - 支持情绪统计查询（按日期、周模式）
+  - 新增 `/api/sprite/emotions` 和 `/api/sprite/emotions/weekly` 端点
+- S3-2:
+  - 增强 `EmotionHistoryService.java` - 添加最优联系窗口分析
+  - 添加 `OptimalContactWindow` 和 `WeeklyContactAdvice` 记录类型
+  - 添加 `getOptimalContactWindows()` - 获取最优联系时间窗口
+  - 添加 `getWeeklyContactAdvice()` - 获取每周联系建议
+  - 添加 `getPredictedMoodForDay()` - 预测某日情绪
+  - 添加 `getPredictedContactScore()` - 获取联系分数
+  - 新增 `/api/sprite/emotions/contact-advice` 端点
+  - 新增 `/api/sprite/emotions/optimal-windows` 端点
 
 ---
 

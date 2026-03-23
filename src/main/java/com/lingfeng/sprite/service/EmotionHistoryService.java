@@ -3,6 +3,7 @@ package com.lingfeng.sprite.service;
 import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -15,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,6 +111,28 @@ public class EmotionHistoryService {
             Map<DayOfWeek, Mood> typicalMoods,
             Map<DayOfWeek, Float> avgIntensities,
             int[] moodDistribution
+    ) {}
+
+    /**
+     * S3-2: 最优联系窗口
+     */
+    public record OptimalContactWindow(
+            DayOfWeek dayOfWeek,
+            LocalTime startTime,
+            LocalTime endTime,
+            float score,
+            Mood expectedMood,
+            String reason
+    ) {}
+
+    /**
+     * S3-2: 每周联系建议
+     */
+    public record WeeklyContactAdvice(
+            List<OptimalContactWindow> bestWindows,
+            List<DayOfWeek> avoidDays,
+            String summary,
+            int dataPointsAnalyzed
     ) {}
 
     /**
@@ -280,6 +304,229 @@ public class EmotionHistoryService {
         }
 
         return new WeeklyPattern(typicalMoods, avgIntensities, moodDistribution);
+    }
+
+    /**
+     * S3-2: 获取最优联系时间窗口
+     * 分析历史数据，找出主人情绪最积极、最适合主动联系的时间段
+     */
+    public List<OptimalContactWindow> getOptimalContactWindows() {
+        List<OptimalContactWindow> windows = new ArrayList<>();
+
+        // 分析最近30天的数据
+        List<EmotionRecord> recentRecords = getRecentRecords(30);
+        if (recentRecords.isEmpty()) {
+            return windows;
+        }
+
+        // 按星期和小时分组分析
+        Map<DayOfWeek, Map<Integer, List<EmotionRecord>>> recordsByDayAndHour = new HashMap<>();
+
+        for (EmotionRecord record : recentRecords) {
+            LocalDate date = record.timestamp().atZone(TIMEZONE).toLocalDate();
+            DayOfWeek dayOfWeek = date.getDayOfWeek();
+            int hour = record.timestamp().atZone(TIMEZONE).getHour();
+
+            recordsByDayAndHour
+                    .computeIfAbsent(dayOfWeek, k -> new HashMap<>())
+                    .computeIfAbsent(hour, k -> new ArrayList<>())
+                    .add(record);
+        }
+
+        // 对每个星期和小时组合计算分数
+        for (Map.Entry<DayOfWeek, Map<Integer, List<EmotionRecord>>> dayEntry : recordsByDayAndHour.entrySet()) {
+            DayOfWeek day = dayEntry.getKey();
+            Map<Integer, List<EmotionRecord>> hourRecords = dayEntry.getValue();
+
+            for (Map.Entry<Integer, List<EmotionRecord>> hourEntry : hourRecords.entrySet()) {
+                int hour = hourEntry.getKey();
+                List<EmotionRecord> records = hourEntry.getValue();
+
+                // 计算该时间窗口的情绪分数
+                float avgSentiment = records.stream()
+                        .mapToFloat(EmotionRecord::sentimentScore)
+                        .average()
+                        .orElse(0.5f);
+
+                // 计算积极情绪占比
+                long positiveCount = records.stream()
+                        .filter(r -> isPositiveMood(r.mood()))
+                        .count();
+                float positiveRatio = (float) positiveCount / records.size();
+
+                // 综合分数：情绪分数 * 0.6 + 积极比例 * 0.4
+                float score = avgSentiment * 0.6f + positiveRatio * 0.4f;
+
+                // 找出最常见的情绪
+                Mood typicalMood = records.stream()
+                        .map(EmotionRecord::mood)
+                        .collect(Collectors.groupingBy(m -> m, Collectors.counting()))
+                        .entrySet().stream()
+                        .max(Map.Entry.comparingByValue())
+                        .map(Map.Entry::getKey)
+                        .orElse(Mood.NEUTRAL);
+
+                // 只返回分数 > 0.5 的时间窗口
+                if (score > 0.5f) {
+                    String reason = String.format("历史数据：%d条记录，平均情绪分数%.2f，积极情绪占比%.0f%%",
+                            records.size(), avgSentiment, positiveRatio * 100);
+
+                    windows.add(new OptimalContactWindow(
+                            day,
+                            LocalTime.of(hour, 0),
+                            LocalTime.of(hour, 59),
+                            score,
+                            typicalMood,
+                            reason
+                    ));
+                }
+            }
+        }
+
+        // 按分数降序排序
+        windows.sort((a, b) -> Float.compare(b.score(), a.score()));
+
+        return windows;
+    }
+
+    /**
+     * S3-2: 判断是否为积极情绪
+     */
+    private boolean isPositiveMood(Mood mood) {
+        return switch (mood) {
+            case HAPPY, EXCITED, GRATEFUL, CONFIDENT -> true;
+            default -> false;
+        };
+    }
+
+    /**
+     * S3-2: 判断是否为消极情绪
+     */
+    private boolean isNegativeMood(Mood mood) {
+        return switch (mood) {
+            case SAD, ANXIOUS, FRUSTRATED -> true;
+            default -> false;
+        };
+    }
+
+    /**
+     * S3-2: 获取每周联系建议
+     * 综合分析给出最佳联系时间建议
+     */
+    public WeeklyContactAdvice getWeeklyContactAdvice() {
+        List<OptimalContactWindow> optimalWindows = getOptimalContactWindows();
+
+        // 统计应避免联系的日期
+        List<DayOfWeek> avoidDays = new ArrayList<>();
+        Map<DayOfWeek, Float> dayScores = new HashMap<>();
+
+        for (DayOfWeek day : DayOfWeek.values()) {
+            List<OptimalContactWindow> dayWindows = optimalWindows.stream()
+                    .filter(w -> w.dayOfWeek() == day)
+                    .toList();
+
+            if (dayWindows.isEmpty()) {
+                // 没有积极数据，可能是联系效果不好的日期
+                avoidDays.add(day);
+            } else {
+                float avgScore = dayWindows.stream()
+                        .mapToFloat(OptimalContactWindow::score)
+                        .average()
+                        .orElse(0f);
+                dayScores.put(day, avgScore);
+            }
+        }
+
+        // 生成总结
+        String summary;
+        if (optimalWindows.isEmpty()) {
+            summary = "数据不足，需要更多历史数据来分析最佳联系时间";
+        } else {
+            // 找出最佳窗口
+            OptimalContactWindow best = optimalWindows.get(0);
+            summary = String.format("本周最佳联系时间：%s %s-%s，预估情绪%s，成功率较高",
+                    getDayName(best.dayOfWeek()),
+                    best.startTime().toString(),
+                    best.endTime().toString(),
+                    getMoodName(best.expectedMood()));
+        }
+
+        int dataPoints = getRecentRecords(30).size();
+
+        return new WeeklyContactAdvice(
+                optimalWindows.stream().limit(5).toList(), // 最多返回5个最佳窗口
+                avoidDays,
+                summary,
+                dataPoints
+        );
+    }
+
+    /**
+     * S3-2: 获取某日期的情绪预测
+     * 基于历史数据预测某天的情绪
+     */
+    public Mood getPredictedMoodForDay(DayOfWeek dayOfWeek) {
+        List<EmotionRecord> recentRecords = getRecentRecords(30);
+
+        // 按星期筛选
+        List<Mood> dayMoods = recentRecords.stream()
+                .filter(r -> r.timestamp().atZone(TIMEZONE).getDayOfWeek() == dayOfWeek)
+                .map(EmotionRecord::mood)
+                .toList();
+
+        if (dayMoods.isEmpty()) {
+            return Mood.NEUTRAL;
+        }
+
+        // 返回最常见的情绪
+        return dayMoods.stream()
+                .collect(Collectors.groupingBy(m -> m, Collectors.counting()))
+                .entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse(Mood.NEUTRAL);
+    }
+
+    /**
+     * S3-2: 获取某时间的情绪预测分数
+     * 返回 0.0-1.0，分数越高越适合联系
+     */
+    public float getPredictedContactScore(DayOfWeek dayOfWeek, int hour) {
+        List<OptimalContactWindow> windows = getOptimalContactWindows();
+
+        return windows.stream()
+                .filter(w -> w.dayOfWeek() == dayOfWeek && w.startTime().getHour() == hour)
+                .findFirst()
+                .map(OptimalContactWindow::score)
+                .orElse(0.5f); // 默认中性
+    }
+
+    private String getDayName(DayOfWeek day) {
+        return switch (day) {
+            case MONDAY -> "周一";
+            case TUESDAY -> "周二";
+            case WEDNESDAY -> "周三";
+            case THURSDAY -> "周四";
+            case FRIDAY -> "周五";
+            case SATURDAY -> "周六";
+            case SUNDAY -> "周日";
+        };
+    }
+
+    private String getMoodName(Mood mood) {
+        return switch (mood) {
+            case HAPPY -> "开心";
+            case EXCITED -> "兴奋";
+            case GRATEFUL -> "感激";
+            case CONFIDENT -> "自信";
+            case CALM -> "平静";
+            case NEUTRAL -> "中性";
+            case CONFUSED -> "困惑";
+            case TIRED -> "疲惫";
+            case SAD -> "难过";
+            case ANXIOUS -> "焦虑";
+            case FRUSTRATED -> "烦躁";
+        };
     }
 
     /**
