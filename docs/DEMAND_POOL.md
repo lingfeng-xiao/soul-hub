@@ -95,6 +95,7 @@
 | D5 | 更新ARCHITECTURE.md添加S11传感器 | ✅ done | 循环改进 |
 | D6 | 更新ARCHITECTURE.md添加MultiDeviceCoordinationService | ✅ done | 循环改进 |
 | D7 | 更新ARCHITECTURE.md添加S10 Dashboard服务章节 | ✅ done | 循环改进 |
+| D8 | 为S10 Dashboard服务添加单元测试 | ✅ done | 循环改进 |
 
 ---
 
