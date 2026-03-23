@@ -21,19 +21,38 @@
 | S9 | 感知系统扩展 | 待开始 |
 | S10 | 可观测性建设 | 待开始 |
 
-**整体进度**: 40% (S1完成 + S2-1完成 + 文档建立)
+**整体进度**: 45% (S1完成 + S2-1,2完成 + 文档建立)
 
 ---
 
 ## Sprint-S2 停止原因
 
-**已完成当前Sprint第一个任务**
+**已完成S2 Sprint两个任务**
 
-S2-1 (主人响应追踪) 是S2 Sprint的第一个任务，已完成。根据工作流规则，完成后停止当前循环进行交接。
+S2-1 (主人响应追踪) 和 S2-2 (交互偏好学习) 已完成。根据工作流规则，完成后停止当前循环进行交接。
 
 ---
 
 ## Sprint-S2 完成内容
+
+### S2-1: 主人响应追踪 ✅
+- 新增 `FeedbackTrackerService.java`
+- 追踪主动消息的发送和主人响应
+- 响应类型分类：正向/中性/回复/拒绝/忽略
+- 5分钟超时检测无响应消息
+- 新增 `/api/sprite/feedback` 端点
+
+### S2-2: 交互偏好学习 ✅
+- 新增 `InteractionPreferenceLearningService.java`
+- 推断主人对话风格（简短/详细/中性）
+- 推断最佳联系时间（小时/星期）
+- 计算不同触发类型的响应率
+- ProactiveService 根据偏好调整消息策略
+- 新增 `/api/sprite/preferences` 端点
+
+---
+
+## Sprint-S1 完成内容
 
 ### S1-1: 服务器内存告警监控 ✅
 - 新增 `HealthMonitorService.java`
@@ -49,27 +68,12 @@ S2-1 (主人响应追踪) 是S2 Sprint的第一个任务，已完成。根据工
 - 新增 `/api/sprite/health` 端点
 - 返回内存使用率、LLM状态等健康详情
 
-### S2-1: 主人响应追踪 ✅
-- 新增 `FeedbackTrackerService.java`
-- 追踪主动消息的发送和主人响应
-- 响应类型分类：正向/中性/回复/拒绝/忽略
-- 5分钟超时检测无响应消息
-- 新增 `/api/sprite/feedback` 端点
-
----
-
-## Sprint-S1 停止原因
-
-**已完成当前可推进的最高优先级任务**
-
-S1 (P0可靠性加固) 是最高优先级任务，已全部完成。根据停止条件第5条"已完成当前可推进的最高优先级任务"，停止当前循环。
-
 ---
 
 ## 下一步最优先
 
-1. **S2-2: 交互偏好学习** - P1优先级，学习主人交互偏好
-2. **S2-3: 反馈调整机制** - P1优先级，根据反馈调整行为
+1. **S2-3: 反馈调整机制** - P1优先级，根据反馈调整行为
+2. **S2-4: 情绪响应模型** - P1优先级，根据主人情绪调整响应
 
 ---
 
@@ -83,18 +87,20 @@ S1 (P0可靠性加固) 是最高优先级任务，已全部完成。根据停止
 | `DecisionEngine.java` | 修改(S6) | 支持记忆触发动作 |
 | `ReasoningEngine.java` | 修改(S6,S1) | S6增加memoryHighlights; S1增加降级检测 |
 | `HealthMonitorService.java` | 新增(S1) | 健康监控服务 |
-| `FeedbackTrackerService.java` | 新增(S2) | 主人响应追踪服务 |
+| `FeedbackTrackerService.java` | 新增(S2-1) | 主人响应追踪服务 |
+| `InteractionPreferenceLearningService.java` | 新增(S2-2) | 交互偏好学习服务 |
 | `MinMaxLlmReasoner.java` | 修改(S1) | 失败追踪和降级处理 |
-| `SpriteController.java` | 修改(S1,S2) | S1添加健康检查端点; S2添加反馈端点 |
-| `ProactiveService.java` | 修改(S2) | 集成反馈追踪 |
+| `SpriteController.java` | 修改(S1,S2) | S1健康检查; S2反馈和偏好端点 |
+| `ProactiveService.java` | 修改(S2) | 集成反馈追踪和偏好学习 |
 | `ConversationService.java` | 修改(S2) | 通知反馈追踪器 |
 | `OwnerModel.java` | 修改(S2) | 新增ProactiveFeedback和交互类型 |
+| `UnifiedContextService.java` | 修改(S2) | 添加getWorldModelOptional() |
 
 ---
 
 ## 当前阻塞点
 
-**无阻塞** - S2-1已完成，待继续S2
+**无阻塞** - S2-1,2已完成，待继续S2
 
 ---
 
@@ -110,11 +116,10 @@ S1 (P0可靠性加固) 是最高优先级任务，已全部完成。根据停止
 
 | 提交 | 日期 | 说明 |
 |------|------|------|
+| 5cc4f60 | 2026-03-23 | feat: S2-2 交互偏好学习 |
 | c847f52 | 2026-03-23 | feat: S2-1 主人响应追踪 |
+| 58df0ec | 2026-03-23 | docs: 更新HANDOVER.md反映S2-1完成状态 |
 | 85f1099 | 2026-03-23 | feat: S1 可靠性加固 (内存监控/LLM降级/健康API) |
-| ed815b0 | 2026-03-23 | fix: 修复 CognitionController 变量作用域错误 |
-| fb576b0 | 2026-03-23 | fix: 修复 BehaviorEmotionInferrer 类型错误 |
-| fd9d2a7 | 2026-03-23 | feat: 行为信号情感推断 (S6-B1) |
 
 ---
 
