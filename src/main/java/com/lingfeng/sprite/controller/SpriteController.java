@@ -20,6 +20,7 @@ import com.lingfeng.sprite.service.HealthMonitorService;
 import com.lingfeng.sprite.service.InteractionPreferenceLearningService;
 import com.lingfeng.sprite.service.EmotionHistoryService;
 import com.lingfeng.sprite.service.MemoryVisualizationService;
+import com.lingfeng.sprite.service.OwnerEmotionDashboardService;
 import com.lingfeng.sprite.service.SpriteService;
 
 /**
@@ -38,6 +39,7 @@ public class SpriteController {
     private final EmotionHistoryService emotionHistoryService;
     private final GitHubBackupService gitHubBackupService;
     private final MemoryVisualizationService memoryVisualizationService;
+    private final OwnerEmotionDashboardService emotionDashboardService;
 
     public SpriteController(
             SpriteService spriteService,
@@ -46,7 +48,8 @@ public class SpriteController {
             InteractionPreferenceLearningService preferenceLearningService,
             EmotionHistoryService emotionHistoryService,
             GitHubBackupService gitHubBackupService,
-            MemoryVisualizationService memoryVisualizationService
+            MemoryVisualizationService memoryVisualizationService,
+            OwnerEmotionDashboardService emotionDashboardService
     ) {
         this.spriteService = spriteService;
         this.healthMonitorService = healthMonitorService;
@@ -55,6 +58,7 @@ public class SpriteController {
         this.emotionHistoryService = emotionHistoryService;
         this.gitHubBackupService = gitHubBackupService;
         this.memoryVisualizationService = memoryVisualizationService;
+        this.emotionDashboardService = emotionDashboardService;
     }
 
     /**
@@ -241,6 +245,16 @@ public class SpriteController {
             @RequestParam(defaultValue = "7") int days) {
         EmotionHistoryService.EmotionTrend trend = emotionHistoryService.getEmotionTrend(days);
         return ResponseEntity.ok(trend);
+    }
+
+    /**
+     * S12-2: GET /api/sprite/emotions/dashboard - 获取主人情绪Dashboard聚合数据（连接真实EmotionHistoryService）
+     */
+    @GetMapping("/emotions/dashboard")
+    public ResponseEntity<OwnerEmotionDashboardService.OwnerEmotionDashboardData> getEmotionDashboard() {
+        OwnerEmotionDashboardService.OwnerEmotionDashboardData data =
+                emotionDashboardService.generateDashboardData(emotionHistoryService);
+        return ResponseEntity.ok(data);
     }
 
     // ==================== S4: GitHub备份接口 ====================
