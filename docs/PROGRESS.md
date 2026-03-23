@@ -1,58 +1,72 @@
-# 项目进度报告
+# 开发进度日志 (PROGRESS)
 
-## Sprint-006 完成状态 (2026-03-23)
+## 当前阶段
 
-### 已完成阶段
+**当前Sprint**: S1 - 可靠性加固
+**开始日期**: 2026-03-23
+**目标**: 解决P0阻断性问题
 
-| 阶段 | 任务 | 状态 | 关键实现 |
-|------|------|------|----------|
-| S6-A1 | 长期记忆检索机制 | ✅ | `MemoryRetrievalService` 创建并集成到 `CognitionController` |
-| S6-A2 | 情境感知记忆索引 | ✅ | 基于活动类型/情绪/时间的上下文感知检索 |
-| S6-A3 | 回忆触发行动 | ✅ | `DecisionEngine` 增强，支持 `generateRecallTriggeredActions()` |
-| S6-B1 | 行为信号情感推断 | ✅ | `BehaviorEmotionInferrer` 实现，应用类型/存在状态/时间上下文推断 |
+---
 
-### 核心架构改进
+## Sprint-S1: 可靠性加固
 
-#### 1. 记忆-推理集成
-```
-CognitionController.cognitionCycle()
-    ↓
-MemoryRetrievalService.retrieve(context, mood)  ← 新增
-    ↓
-ReasoningEngine.reason()  ← 现在包含 memoryHighlights
-    ↓
-DecisionEngine.decide()  ← 现在包含 retrievalContext
-```
+### 阶段目标
+1. S1-1: 服务器内存告警监控
+2. S1-2: LLM API失败降级处理
+3. S1-3: 系统健康状态API
 
-#### 2. 行为情感推断
-```
-BehaviorEmotionInferrer.infer()
-    ├─ inferFromAppType()      ← 开发=专注, 聊天=放松, 媒体=愉悦
-    ├─ inferFromPresence()     ← ACTIVE=冷静, IDLE=中性, AWAY=疲惫
-    ├─ inferFromTimeContext()  ← 早晨精力充沛, 夜间疲惫
-    └─ inferFromActivity()     ← 工作=自信, 休闲=平静
-```
+### 任务状态
 
-### 技术债务
+| ID | 任务 | 状态 | 负责人 | 开始日期 | 完成日期 |
+|----|------|------|--------|----------|----------|
+| S1-1 | 服务器内存告警监控 | ✅ done | - | 2026-03-23 | 2026-03-23 |
+| S1-2 | LLM API失败降级处理 | ✅ done | - | 2026-03-23 | 2026-03-23 |
+| S1-3 | 系统健康状态API | ✅ done | - | 2026-03-23 | 2026-03-23 |
 
-| 问题 | 优先级 | 说明 |
-|------|--------|------|
-| S6-B2 主人反馈学习 | 中 | 需要主人对主动消息的响应追踪 |
-| S6-B3 情绪时间模式 | 低 | 需要长期纵向追踪 |
+### 完成内容
+- 新增 `HealthMonitorService.java` - 健康监控服务
+- 新增 `/api/sprite/health` 端点 - 系统健康检查API
+- 增强 `MinMaxLlmReasoner.java` - LLM失败追踪和降级处理
+- 增强 `ReasoningEngine.java` - 支持LLM降级时自动切换到启发式推理
+- 增强 `SpriteController.java` - 添加健康检查端点
 
-### 运行状态
+---
 
-- **服务器**: jd (4核16G)
-- **进程ID**: 209347
-- **LLM支持**: ✅ 已启用
-- **编译状态**: ✅ 通过
-- **部署时间**: 2026-03-23 16:36
+## Sprint-S2 ~ S10 规划
+
+| 阶段 | 名称 | 优先级 | 预估任务数 |
+|------|------|--------|------------|
+| S2 | 主人反馈学习 | P1 | 4 |
+| S3 | 情绪时间模式 | P1 | 4 |
+| S4 | 记忆GitHub持久化 | P1 | 4 |
+| S5 | 传感器系统加固 | 技术债 | 4 |
+| S6 | 决策引擎增强 | 优化 | 4 |
+| S7 | 动作系统扩展 | 优化 | 4 |
+| S8 | 进化机制增强 | 优化 | 4 |
+| S9 | 感知系统扩展 | 探索 | 4 |
+| S10 | 可观测性建设 | 优化 | 4 |
 
 ---
 
 ## 历史Sprint摘要
 
-### Sprint-005: 核心闭环修复
+### Sprint-006: 长期记忆与情感推断 (2026-03-23)
+**完成状态**: ✅
+
+| 任务 | 状态 | 关键实现 |
+|------|------|----------|
+| S6-A1 长期记忆检索机制 | ✅ | `MemoryRetrievalService` 创建并集成到 `CognitionController` |
+| S6-A2 情境感知记忆索引 | ✅ | 基于活动类型/情绪/时间的上下文感知检索 |
+| S6-A3 回忆触发行动 | ✅ | `DecisionEngine` 增强，支持 `generateRecallTriggeredActions()` |
+| S6-B1 行为信号情感推断 | ✅ | `BehaviorEmotionInferrer` 实现，应用类型/存在状态/时间上下文推断 |
+
+**核心架构改进**:
+- 记忆-推理集成完成
+- 行为情感推断完成
+
+### Sprint-005: 核心闭环修复 (2026-03-22)
+**完成状态**: ✅
+
 - DecisionEngine 重建
 - 动作系统扩展 (6个动作插件)
 - 反馈收集机制
@@ -60,7 +74,53 @@ BehaviorEmotionInferrer.infer()
 - 主动交互智能化
 - 感知系统增强 (OSHI电池/网络延迟)
 
-### Sprint-004: 主动交互系统
+### Sprint-004: 主动交互系统 (2026-03-21)
+**完成状态**: ✅
+
 - ProactiveService 实现
 - LLM 生成个性化消息
 - 空闲/情绪/定时触发器
+
+---
+
+## 运行状态
+
+| 指标 | 状态 |
+|------|------|
+| 服务器进程 | PID 209347 ✅ 运行中 |
+| LLM支持 | ✅ 已启用 |
+| 编译状态 | ✅ 通过 |
+| 部署时间 | 2026-03-23 16:36 |
+| 监听端口 | 8080 |
+
+---
+
+## 验证命令
+
+```bash
+# 检查服务器状态
+ssh jd
+curl http://localhost:8080/api/sprite/state
+
+# 检查编译
+cd /home/lingfeng/builds/digital-beings-java
+./mvnw compile
+
+# 查看日志
+tail -50 ~/sprite.log
+
+# 检查内存使用
+free -h
+```
+
+---
+
+## 提交规范
+
+每个任务完成后必须：
+1. 更新 `docs/PROGRESS.md`
+2. 更新 `docs/DEMAND_POOL.md`
+3. 更新 `docs/HANDOVER.md`
+4. 运行验证命令
+5. 记录验证结果
+6. Git commit

@@ -15,6 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -29,9 +31,19 @@ public class MinMaxLlmReasoner implements ReasoningEngine.LlmReasoner {
 
     private static final Logger logger = LoggerFactory.getLogger(MinMaxLlmReasoner.class);
 
+    // 连续失败阈值，超过此值认为API不可用
+    private static final int FAILURE_THRESHOLD = 3;
+    // 恢复检查间隔 (5分钟)
+    private static final long RECOVERY_CHECK_INTERVAL_MINUTES = 5;
+
     private final MinMaxConfig config;
     private final ObjectMapper objectMapper;
     private final CloseableHttpClient httpClient;
+
+    // 失败追踪
+    private int consecutiveFailures = 0;
+    private volatile boolean isDegraded = false;
+    private Instant lastFailureTime = Instant.now();
 
     public MinMaxLlmReasoner(MinMaxConfig config) {
         this.config = config;
@@ -311,6 +323,9 @@ public class MinMaxLlmReasoner implements ReasoningEngine.LlmReasoner {
     }
 
     private String callMinMax(String prompt) {
+        // 检查是否需要恢复检查
+        checkForRecovery();
+
         try {
             HttpPost request = new HttpPost(config.baseUrl() + "/text/chatcompletion_v2");
             request.setHeader("Authorization", "Bearer " + config.apiKey());
@@ -332,12 +347,17 @@ public class MinMaxLlmReasoner implements ReasoningEngine.LlmReasoner {
                 if (choices.isArray() && choices.size() > 0) {
                     JsonNode message = choices.get(0).path("message");
                     String content = message.path("content").asText("");
+
+                    // 调用成功，重置失败计数
+                    onApiSuccess();
                     return content;
                 }
+                onApiFailure();
                 return "";
             }
         } catch (Exception e) {
             logger.debug("MinMax API call failed: {}", e.getMessage());
+            onApiFailure();
             return "";
         }
     }
@@ -354,6 +374,60 @@ public class MinMaxLlmReasoner implements ReasoningEngine.LlmReasoner {
             logger.debug("MinMax API call retry {}/{}", i + 1, maxRetries);
         }
         return "";
+    }
+
+    /**
+     * API调用成功时调用
+     */
+    private void onApiSuccess() {
+        consecutiveFailures = 0;
+        if (isDegraded) {
+            logger.info("MinMax API recovered from degraded state");
+            isDegraded = false;
+        }
+    }
+
+    /**
+     * API调用失败时调用
+     */
+    private void onApiFailure() {
+        consecutiveFailures++;
+        lastFailureTime = Instant.now();
+
+        if (consecutiveFailures >= FAILURE_THRESHOLD && !isDegraded) {
+            isDegraded = true;
+            logger.warn("MinMax API entered degraded state after {} consecutive failures", consecutiveFailures);
+        }
+    }
+
+    /**
+     * 检查是否需要恢复
+     */
+    private void checkForRecovery() {
+        if (!isDegraded) {
+            return;
+        }
+
+        // 每5分钟检查一次是否恢复
+        Duration sinceLastFailure = Duration.between(lastFailureTime, Instant.now());
+        if (sinceLastFailure.toMinutes() >= RECOVERY_CHECK_INTERVAL_MINUTES) {
+            // 尝试一次调用看是否恢复
+            logger.info("Attempting to recover from degraded state...");
+        }
+    }
+
+    /**
+     * 检查是否处于降级状态
+     */
+    public boolean isDegraded() {
+        return isDegraded;
+    }
+
+    /**
+     * 获取连续失败次数
+     */
+    public int getConsecutiveFailures() {
+        return consecutiveFailures;
     }
 
     private ReasoningEngine.Intent parseIntentResponse(String response, ReasoningEngine.IntentPrompt original) {

@@ -45,6 +45,7 @@ public class ReasoningEngine {
 
     private final LlmReasoner llmReasoner;
     private final ExecutorService executor;
+    private volatile boolean useHeuristicFallback = false;
 
     public ReasoningEngine(LlmReasoner llmReasoner) {
         this.llmReasoner = llmReasoner;
@@ -57,7 +58,19 @@ public class ReasoningEngine {
     public ReasoningResult reason(ReasoningContext context) {
         List<ReasoningOutput> results = new ArrayList<>();
 
-        if (llmReasoner != null) {
+        // 检查是否应该使用降级模式
+        if (llmReasoner instanceof com.lingfeng.sprite.llm.MinMaxLlmReasoner mmReasoner) {
+            if (mmReasoner.isDegraded()) {
+                useHeuristicFallback = true;
+                logger.info("LLM is degraded, using heuristic fallback");
+            } else if (useHeuristicFallback) {
+                // 尝试恢复LLM模式
+                useHeuristicFallback = false;
+                logger.info("LLM recovered, resuming LLM reasoning");
+            }
+        }
+
+        if (llmReasoner != null && !useHeuristicFallback) {
             // 并行启动所有 LLM 调用
             CompletableFuture<Intent> intentFuture = llmReasoner.inferIntent(new IntentPrompt(
                 context.situation(),
