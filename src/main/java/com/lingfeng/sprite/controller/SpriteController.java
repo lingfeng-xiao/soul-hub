@@ -21,6 +21,7 @@ import com.lingfeng.sprite.service.InteractionPreferenceLearningService;
 import com.lingfeng.sprite.service.EmotionHistoryService;
 import com.lingfeng.sprite.service.MemoryVisualizationService;
 import com.lingfeng.sprite.service.OwnerEmotionDashboardService;
+import com.lingfeng.sprite.service.EvolutionDashboardService;
 import com.lingfeng.sprite.service.SpriteService;
 
 /**
@@ -40,6 +41,7 @@ public class SpriteController {
     private final GitHubBackupService gitHubBackupService;
     private final MemoryVisualizationService memoryVisualizationService;
     private final OwnerEmotionDashboardService emotionDashboardService;
+    private final EvolutionDashboardService evolutionDashboardService;
 
     public SpriteController(
             SpriteService spriteService,
@@ -49,7 +51,8 @@ public class SpriteController {
             EmotionHistoryService emotionHistoryService,
             GitHubBackupService gitHubBackupService,
             MemoryVisualizationService memoryVisualizationService,
-            OwnerEmotionDashboardService emotionDashboardService
+            OwnerEmotionDashboardService emotionDashboardService,
+            EvolutionDashboardService evolutionDashboardService
     ) {
         this.spriteService = spriteService;
         this.healthMonitorService = healthMonitorService;
@@ -59,6 +62,7 @@ public class SpriteController {
         this.gitHubBackupService = gitHubBackupService;
         this.memoryVisualizationService = memoryVisualizationService;
         this.emotionDashboardService = emotionDashboardService;
+        this.evolutionDashboardService = evolutionDashboardService;
     }
 
     /**
@@ -137,6 +141,16 @@ public class SpriteController {
     public ResponseEntity<EvolutionEngine.EvolutionStatus> getEvolutionStatus() {
         EvolutionEngine.EvolutionStatus status = spriteService.getEvolutionStatus();
         return ResponseEntity.ok(status);
+    }
+
+    /**
+     * S12-3: GET /api/sprite/evolution/dashboard - 获取进化Dashboard数据（连接真实EvolutionEngine）
+     */
+    @GetMapping("/evolution/dashboard")
+    public ResponseEntity<EvolutionDashboardService.EvolutionDashboardData> getEvolutionDashboard() {
+        EvolutionDashboardService.EvolutionDashboardData data =
+                evolutionDashboardService.getDashboardData(spriteService.getEvolutionEngine());
+        return ResponseEntity.ok(data);
     }
 
     /**

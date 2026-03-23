@@ -305,6 +305,13 @@ public class SpriteService {
     }
 
     /**
+     * S12-3: 获取EvolutionEngine供Dashboard使用
+     */
+    public EvolutionEngine.Engine getEvolutionEngine() {
+        return evolutionEngine;
+    }
+
+    /**
      * 获取进化状态
      */
     public EvolutionEngine.EvolutionStatus getEvolutionStatus() {
