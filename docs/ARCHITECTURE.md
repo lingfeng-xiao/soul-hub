@@ -24,6 +24,11 @@
    - [5.3 ActionExecutor](#53-actionexecutor)
    - [5.4 MemoryConsolidationService](#54-memoryconsolidationservice)
    - [5.5 EvolutionService](#55-evolutionservice)
+   - [5.6 WebhookService](#56-webhookservice-s11)
+   - [5.7 ExternalApiAdapterService](#57-externalapiadapterservice-s11)
+   - [5.8 HotReloadConfigService](#58-hotreloadconfigservice-s11)
+   - [5.9 PerformanceMonitorService](#59-performancemonitorservice-s11)
+   - [5.10 ApiDocService](#510-apidocservice-s11)
 6. [Sensors](#6-sensors)
    - [6.1 RealPlatformSensor](#61-realplatformsensor)
    - [6.2 RealUserSensor](#62-realusersensor)
@@ -588,6 +593,99 @@ Applies evolution engine results to update SelfModel.
 - Updates SelfModel capabilities, values, metacognition
 - Records growth events
 - Manages evolution level progression
+
+### 5.6 WebhookService (S11)
+
+Event-driven webhook integration for external notifications.
+
+**File**: `src/main/java/com/lingfeng/sprite/service/WebhookService.java`
+
+**Features**:
+- Register webhook endpoints with event subscriptions
+- Trigger events to multiple endpoints
+- 10 event types: SPRITE_STARTED, SPRITE_STOPPED, EMOTION_CHANGED, DECISION_MADE, ACTION_EXECUTED, MEMORY_CONSOLIDATED, EVOLUTION_TRIGGERED, ERROR_OCCURRED, OWNER_INTERACTION, PROACTIVE_MESSAGE
+
+**Key Types**:
+```java
+WebhookEndpoint(id, name, url, secret, subscribedEvents, enabled)
+WebhookEvent(id, type, timestamp, payload)
+DeliveryResult(endpointId, success, statusCode, response, error, durationMs)
+```
+
+### 5.7 ExternalApiAdapterService (S11)
+
+Unified external API calling interface with caching.
+
+**File**: `src/main/java/com/lingfeng/sprite/service/ExternalApiAdapterService.java`
+
+**Features**:
+- 7 API types: WEATHER, NEWS, CALENDAR, REMINDER, SEARCH, TRANSLATION, CUSTOM
+- Response caching with 5-minute TTL
+- Async API call support
+
+**Key Types**:
+```java
+ApiEndpoint(id, name, type, baseUrl, apiKey, timeout, enabled)
+ApiResponse(success, statusCode, body, error, responseTimeMs, fromCache)
+```
+
+### 5.8 HotReloadConfigService (S11)
+
+Runtime configuration hot-reload with file watching.
+
+**File**: `src/main/java/com/lingfeng/sprite/service/HotReloadConfigService.java`
+
+**Features**:
+- JSON/YAML configuration parsing
+- File change detection with polling
+- Callback mechanism for config changes
+- Nested key update (e.g., "database.connection.timeout")
+- Config backup and versioning
+
+**Key Types**:
+```java
+ConfigEntry(path, content, lastModified, lastLoaded, data)
+ConfigCallback(path, newData) // functional interface
+```
+
+### 5.9 PerformanceMonitorService (S11)
+
+JVM performance monitoring with custom metrics.
+
+**File**: `src/main/java/com/lingfeng/sprite/service/PerformanceMonitorService.java`
+
+**Features**:
+- JVM memory/thread/CPU monitoring
+- Custom metrics registration (GAUGE, COUNTER, TIMER)
+- Performance history (up to 1000 data points)
+- Alert checking (memory >80%/90%, threads >200)
+- Timer context with AutoCloseable
+
+**Key Types**:
+```java
+PerformanceSnapshot(timestamp, memory, threads, customMetrics, system)
+MetricPoint(timestamp, value, unit)
+Alert(level, source, message, value)
+```
+
+### 5.10 ApiDocService (S11)
+
+Automated API documentation generation.
+
+**File**: `src/main/java/com/lingfeng/sprite/service/ApiDocService.java`
+
+**Features**:
+- Endpoint registration and documentation
+- OpenAPI 3.0.3 format generation
+- Change history tracking
+- Search and filter by tags/path
+- JSON export
+
+**Key Types**:
+```java
+ApiEndpointDoc(path, method, summary, description, tags, parameters, response)
+ApiDocumentation(title, version, generatedAt, services, endpoints, changeHistory)
+```
 
 ---
 
