@@ -13,9 +13,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 /**
- * S11-1: Webhook集成服务
+ * S11-1: Webhook集成服务 - S13-1: 添加Spring服务注解
  *
  * 支持Sprite向外部服务发送Webhook通知：
  * - 事件触发Webhook调用
@@ -23,6 +24,7 @@ import org.slf4j.LoggerFactory;
  * - 重试机制
  * - 签名验证（可选）
  */
+@Service
 public class WebhookService {
 
     private static final Logger logger = LoggerFactory.getLogger(WebhookService.class);

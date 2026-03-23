@@ -44,6 +44,7 @@ public class SpriteService {
     private final ActionExecutor actionExecutor;
     private final UnifiedContextService unifiedContextService;
     private final AvatarService avatarService;
+    private final WebhookService webhookService;
 
     public SpriteService(
             AppConfig appConfig,
@@ -54,7 +55,8 @@ public class SpriteService {
             ActionExecutor actionExecutor,
             MemorySystem.Memory memory,
             UnifiedContextService unifiedContextService,
-            AvatarService avatarService
+            AvatarService avatarService,
+            WebhookService webhookService
     ) {
         this.memoryConsolidationService = memoryConsolidationService;
         this.evolutionService = evolutionService;
@@ -62,6 +64,7 @@ public class SpriteService {
         this.memory = memory;
         this.unifiedContextService = unifiedContextService;
         this.avatarService = avatarService;
+        this.webhookService = webhookService;
 
         // 加载已保存的长期记忆
         this.memory.load();
@@ -167,12 +170,18 @@ public class SpriteService {
 
         // 记忆整合
         memoryConsolidationService.consolidateIfNeeded(memory);
+        // S13-1: 触发记忆整合事件
+        webhookService.triggerEvent(WebhookService.EventType.MEMORY_CONSOLIDATED,
+            Map.of("timestamp", Instant.now().toString()));
 
         // 每轮保存一次记忆（避免丢失）
         memory.save();
 
         // 应用进化结果
         evolutionService.applyEvolution(sprite);
+        // S13-1: 触发进化事件
+        webhookService.triggerEvent(WebhookService.EventType.EVOLUTION_TRIGGERED,
+            Map.of("timestamp", Instant.now().toString()));
 
         // 执行推荐动作（优先使用决策引擎生成的可执行动作）
         if (result.decisionResult() != null && result.decisionResult().hasActions()) {
@@ -185,6 +194,14 @@ public class SpriteService {
                 logger.info("Executed tool '{}': success={}, message={}",
                     toolCall.tool(), execResult.success(), execResult.message());
 
+                // S13-1: 触发动作执行事件
+                webhookService.triggerEvent(WebhookService.EventType.ACTION_EXECUTED,
+                    Map.of(
+                        "timestamp", Instant.now().toString(),
+                        "tool", toolCall.tool(),
+                        "success", execResult.success()
+                    ));
+
                 // 收集动作执行反馈到进化引擎
                 recordActionFeedback(toolCall.tool(), execResult);
             }
@@ -193,6 +210,13 @@ public class SpriteService {
             // 降级：使用旧的字符串格式
             for (String action : result.actionRecommendation().recommendations()) {
                 ActionResult execResult = actionExecutor.execute(action, buildActionContext(null, result));
+                // S13-1: 触发动作执行事件
+                webhookService.triggerEvent(WebhookService.EventType.ACTION_EXECUTED,
+                    Map.of(
+                        "timestamp", Instant.now().toString(),
+                        "tool", action,
+                        "success", execResult.success()
+                    ));
                 // 收集动作执行反馈到进化引擎
                 recordActionFeedback(action, execResult);
             }
@@ -208,6 +232,17 @@ public class SpriteService {
         );
 
         logger.debug("Cognition cycle completed");
+
+        // S13-1: 触发决策事件
+        if (result.decisionResult() != null) {
+            webhookService.triggerEvent(WebhookService.EventType.DECISION_MADE,
+                Map.of(
+                    "timestamp", Instant.now().toString(),
+                    "action", result.decisionResult().chosenAction() != null ?
+                        result.decisionResult().chosenAction().name() : "none"
+                ));
+        }
+
         return result;
     }
 
@@ -331,12 +366,18 @@ public class SpriteService {
     public void start() {
         sprite.start();
         logger.info("Sprite started");
+        // S13-1: 触发Sprite启动事件
+        webhookService.triggerEvent(WebhookService.EventType.SPRITE_STARTED,
+            Map.of("timestamp", Instant.now().toString()));
     }
 
     /**
      * 停止 Sprite
      */
     public void stop() {
+        // S13-1: 触发Sprite停止事件（在实际停止前）
+        webhookService.triggerEvent(WebhookService.EventType.SPRITE_STOPPED,
+            Map.of("timestamp", Instant.now().toString()));
         sprite.stop();
         logger.info("Sprite stopped");
     }
