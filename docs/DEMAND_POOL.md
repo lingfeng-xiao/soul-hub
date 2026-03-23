@@ -162,6 +162,118 @@
 
 ---
 
+## Sprint-S13: S11服务深度集成
+
+### P1 - 核心功能
+
+| ID | 需求 | 状态 | 来源 |
+|----|------|------|------|
+| S13-1 | WebhookService生命周期集成 | ✅ done | Sprint-S13 |
+| S13-2 | ExternalApiAdapterService对话集成 | ✅ done | Sprint-S13 |
+| S13-3 | HotReloadConfigService配置集成 | ✅ done | Sprint-S13 |
+| S13-4 | PerformanceMonitorService告警集成 | ✅ done | Sprint-S13 |
+
+---
+
+### S13任务详情
+
+#### S13-1: WebhookService生命周期集成
+
+**所属阶段**: S13 - S11服务深度集成
+**优先级**: P1
+**状态**: ✅ done
+
+**背景/目标**: WebhookService需要与Sprite生命周期集成以发送事件通知
+
+**实现内容**:
+1. 添加@Service注解到WebhookService
+2. 注入WebhookService到SpriteService
+3. 在生命周期事件触发webhook:
+   - SPRITE_STARTED → sprite.start()之后
+   - SPRITE_STOPPED → sprite.stop()之前
+   - MEMORY_CONSOLIDATED → memoryConsolidationService之后
+   - EVOLUTION_TRIGGERED → evolutionService.applyEvolution()之后
+   - ACTION_EXECUTED → actionExecutor.executeTool()之后
+   - DECISION_MADE → cognition cycle完成后
+
+**依赖**: 无
+**验收标准**: Sprite事件自动触发Webhook
+
+**涉及文件**:
+- `WebhookService.java`
+- `SpriteService.java`
+
+---
+
+#### S13-2: ExternalApiAdapterService对话集成
+
+**所属阶段**: S13 - S11服务深度集成
+**优先级**: P1
+**状态**: ✅ done
+
+**背景/目标**: ExternalApiAdapterService需要集成到对话系统用于天气/新闻查询
+
+**实现内容**:
+1. 添加@Service注解到ExternalApiAdapterService
+2. 注入到SpriteController
+3. 添加REST端点:
+   - GET /api/sprite/external/weather - 天气查询
+   - GET /api/sprite/external/news - 新闻查询
+   - GET /api/sprite/external/search - 网络搜索
+   - GET /api/sprite/external/translate - 翻译
+
+**依赖**: 无
+**验收标准**: API调用可从对话发起
+
+**涉及文件**:
+- `ExternalApiAdapterService.java`
+- `SpriteController.java`
+
+---
+
+#### S13-3: HotReloadConfigService配置集成
+
+**所属阶段**: S13 - S11服务深度集成
+**优先级**: P1
+**状态**: ✅ done
+
+**背景/目标**: HotReloadConfigService需要作为Spring服务可用
+
+**实现内容**:
+1. 添加@Service注解到HotReloadConfigService
+
+**依赖**: 无
+**验收标准**: 服务可被Spring管理
+
+**涉及文件**:
+- `HotReloadConfigService.java`
+
+---
+
+#### S13-4: PerformanceMonitorService告警集成
+
+**所属阶段**: S13 - S11服务深度集成
+**优先级**: P1
+**状态**: ✅ done
+
+**背景/目标**: PerformanceMonitorService需要可访问并触发告警
+
+**实现内容**:
+1. 添加@Service注解到PerformanceMonitorService
+2. 注入到SpriteController
+3. 添加REST端点:
+   - GET /api/sprite/monitor/alerts - 检查性能告警
+   - GET /api/sprite/monitor/snapshot - 获取性能快照
+
+**依赖**: 无
+**验收标准**: 性能监控可通过API访问
+
+**涉及文件**:
+- `PerformanceMonitorService.java`
+- `SpriteController.java`
+
+---
+
 ## Sprint-S11: 新功能探索
 
 ### P1 - 核心功能增强
@@ -210,6 +322,7 @@
 | D12 | 为MemoryConsolidationService添加单元测试 | ✅ done | 循环改进 |
 | D13 | 为InteractionPreferenceLearningService添加单元测试 | ✅ done | 循环改进 |
 | D14 | 更新DEMAND_POOL添加S12任务详情 | ✅ done | Sprint-S12 |
+| D15 | 更新DEMAND_POOL添加S13任务详情 | ✅ done | Sprint-S13 |
 
 ---
 
