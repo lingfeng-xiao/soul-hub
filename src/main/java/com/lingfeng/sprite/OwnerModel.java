@@ -457,7 +457,7 @@ public final class OwnerModel {
     // ==================== 交互记录 ====================
 
     public enum InteractionType {
-        REQUEST, FEEDBACK, CASUAL, QUESTION, COMPLAINT, PRAISE, QUESTION_REJECT
+        REQUEST, FEEDBACK, CASUAL, QUESTION, COMPLAINT, PRAISE, QUESTION_REJECT, PROACTIVE_REPLY, PROACTIVE_IGNORE, PROACTIVE_REJECT
     }
 
     public record Interaction(
@@ -481,6 +481,35 @@ public final class OwnerModel {
 
         public Interaction(Instant timestamp, InteractionType type, String content, float sentiment, String topic) {
             this(timestamp, type, content, sentiment, topic, null, null);
+        }
+    }
+
+    // ==================== 主动消息反馈追踪 ====================
+
+    /**
+     * 主动消息反馈追踪
+     */
+    public record ProactiveFeedback(
+        String messageId,
+        Instant sentTime,
+        String triggerType,
+        String content,
+        ResponseType response,
+        Instant responseTime,
+        String responseContent,
+        float sentiment
+    ) {
+        public enum ResponseType {
+            REPLY,       // 主人回复了消息
+            IGNORE,      // 主人无响应（超时）
+            REJECT,     // 主人明确拒绝/负面反馈
+            POSITIVE,   // 主人积极响应
+            NEUTRAL     // 中性响应
+        }
+
+        public ProactiveFeedback {
+            if (response == null) response = ResponseType.IGNORE;
+            if (sentiment == 0f && response != ResponseType.IGNORE) sentiment = 0.5f;
         }
     }
 }

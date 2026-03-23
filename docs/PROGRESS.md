@@ -2,16 +2,31 @@
 
 ## 当前阶段
 
-**当前Sprint**: S1 - 可靠性加固
+**当前Sprint**: S2 - 主人反馈学习
 **开始日期**: 2026-03-23
-**目标**: 解决P0阻断性问题
-**状态**: ✅ 已完成
+**目标**: 追踪主人对主动消息的响应
+**状态**: 进行中
 
 ---
 
-## Sprint-S1 停止原因
+## Sprint-S2: 主人反馈学习
 
-已完成当前可推进的最高优先级任务（P0阻断性问题全部解决）。
+### 阶段目标
+1. S2-1: 主人响应追踪
+
+### 任务状态
+
+| ID | 任务 | 状态 | 负责人 | 开始日期 | 完成日期 |
+|----|------|------|--------|----------|----------|
+| S2-1 | 主人响应追踪 | ✅ done | - | 2026-03-23 | 2026-03-23 |
+
+### 完成内容
+- 新增 `FeedbackTrackerService.java` - 主人响应追踪服务
+- 新增 `ProactiveFeedback` 记录到 `OwnerModel.java`
+- 新增 `PROACTIVE_REPLY`, `PROACTIVE_IGNORE`, `PROACTIVE_REJECT` 交互类型
+- 增强 `ProactiveService.java` - 记录发送的主动消息
+- 增强 `ConversationService.java` - 通知反馈追踪器有主人活动
+- 增强 `SpriteController.java` - 添加 `/api/sprite/feedback` 端点
 
 ---
 

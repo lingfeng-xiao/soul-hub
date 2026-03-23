@@ -11,6 +11,7 @@ import com.lingfeng.sprite.cognition.CognitionController;
 import com.lingfeng.sprite.EvolutionEngine;
 import com.lingfeng.sprite.MemorySystem;
 import com.lingfeng.sprite.Sprite;
+import com.lingfeng.sprite.service.FeedbackTrackerService;
 import com.lingfeng.sprite.service.HealthMonitorService;
 import com.lingfeng.sprite.service.SpriteService;
 
@@ -25,10 +26,16 @@ public class SpriteController {
 
     private final SpriteService spriteService;
     private final HealthMonitorService healthMonitorService;
+    private final FeedbackTrackerService feedbackTrackerService;
 
-    public SpriteController(SpriteService spriteService, HealthMonitorService healthMonitorService) {
+    public SpriteController(
+            SpriteService spriteService,
+            HealthMonitorService healthMonitorService,
+            FeedbackTrackerService feedbackTrackerService
+    ) {
         this.spriteService = spriteService;
         this.healthMonitorService = healthMonitorService;
+        this.feedbackTrackerService = feedbackTrackerService;
     }
 
     /**
@@ -98,6 +105,15 @@ public class SpriteController {
     public ResponseEntity<HealthMonitorService.HealthDetails> getHealth() {
         HealthMonitorService.HealthDetails health = healthMonitorService.getHealthDetails();
         return ResponseEntity.ok(health);
+    }
+
+    /**
+     * GET /api/sprite/feedback - 获取主人反馈统计
+     */
+    @GetMapping("/feedback")
+    public ResponseEntity<FeedbackTrackerService.FeedbackStats> getFeedbackStats() {
+        FeedbackTrackerService.FeedbackStats stats = feedbackTrackerService.getStats();
+        return ResponseEntity.ok(stats);
     }
 
     /**

@@ -14,7 +14,7 @@
 
 | ID | 需求 | 状态 | 来源 |
 |----|------|------|------|
-| S2-1 | 主人响应追踪 | todo | Sprint-S2 |
+| S2-1 | 主人响应追踪 | ✅ done | Sprint-S2 |
 | S2-2 | 交互偏好学习 | todo | Sprint-S2 |
 | S2-3 | 反馈调整机制 | todo | Sprint-S2 |
 | S2-4 | 情绪响应模型 | todo | Sprint-S2 |

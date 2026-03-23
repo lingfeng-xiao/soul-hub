@@ -27,6 +27,7 @@ public class ConversationService {
     private final MinMaxLlmReasoner llmReasoner;
     private final ActionExecutor actionExecutor;
     private final UnifiedContextService unifiedContextService;
+    private final FeedbackTrackerService feedbackTrackerService;
 
     // 对话历史 (sessionId -> 历史)
     private final Map<String, List<ChatMessage>> chatHistories = new ConcurrentHashMap<>();
@@ -34,11 +35,13 @@ public class ConversationService {
     public ConversationService(
             MinMaxLlmReasoner llmReasoner,
             ActionExecutor actionExecutor,
-            UnifiedContextService unifiedContextService
+            UnifiedContextService unifiedContextService,
+            FeedbackTrackerService feedbackTrackerService
     ) {
         this.llmReasoner = llmReasoner;
         this.actionExecutor = actionExecutor;
         this.unifiedContextService = unifiedContextService;
+        this.feedbackTrackerService = feedbackTrackerService;
     }
 
     public record ChatMessage(String role, String content, Instant timestamp) {}
@@ -51,6 +54,9 @@ public class ConversationService {
     public ConversationResponse chat(String userMessage, String sessionId) {
         try {
             logger.info("Processing chat message from session {}: {}", sessionId, userMessage);
+
+            // 0. 通知反馈追踪器：主人在活动
+            feedbackTrackerService.notifyOwnerActivity();
 
             // 1. 添加用户消息到历史
             addToHistory(sessionId, "user", userMessage);

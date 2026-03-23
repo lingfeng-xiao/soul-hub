@@ -57,6 +57,7 @@ public class ProactiveService {
     private final UnifiedContextService unifiedContextService;
     private final ConversationService conversationService;
     private final MinMaxLlmReasoner llmReasoner;
+    private final FeedbackTrackerService feedbackTrackerService;
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     // 状态跟踪
@@ -73,11 +74,13 @@ public class ProactiveService {
     public ProactiveService(
             @Autowired UnifiedContextService unifiedContextService,
             @Autowired ConversationService conversationService,
-            @Autowired(required = false) MinMaxLlmReasoner llmReasoner
+            @Autowired(required = false) MinMaxLlmReasoner llmReasoner,
+            @Autowired FeedbackTrackerService feedbackTrackerService
     ) {
         this.unifiedContextService = unifiedContextService;
         this.conversationService = conversationService;
         this.llmReasoner = llmReasoner;
+        this.feedbackTrackerService = feedbackTrackerService;
 
         // 启动主动检查
         startProactiveMonitoring();
@@ -489,14 +492,14 @@ public class ProactiveService {
                     : fallbackMessage;
 
                 logger.info("LLM generated proactive message ({}): {}", triggerType, generatedMessage);
-                sendProactiveMessage(generatedMessage);
+                sendProactiveMessage(generatedMessage, triggerType);
             } catch (Exception e) {
                 logger.warn("LLM generation failed, using fallback: {}", e.getMessage());
-                sendProactiveMessage(fallbackMessage);
+                sendProactiveMessage(fallbackMessage, triggerType);
             }
         } else {
             // LLM不可用，使用后备消息
-            sendProactiveMessage(fallbackMessage);
+            sendProactiveMessage(fallbackMessage, triggerType);
         }
     }
 
@@ -561,14 +564,27 @@ public class ProactiveService {
      * 发送主动消息
      */
     private void sendProactiveMessage(String message) {
+        sendProactiveMessage(message, "general");
+    }
+
+    /**
+     * 发送主动消息（带触发类型）
+     */
+    private void sendProactiveMessage(String message, String triggerType) {
         try {
+            // 生成唯一的messageId用于追踪
+            String messageId = "proactive-" + Instant.now().toEpochMilli();
             // 使用固定 session 进行主动对话
             String proactiveSessionId = "proactive-" + Instant.now().toEpochMilli();
+
+            // 记录发送的消息到反馈追踪器
+            feedbackTrackerService.recordProactiveMessage(messageId, triggerType, message);
+
             ConversationService.ConversationResponse response =
                 conversationService.chat(message, proactiveSessionId);
 
             if (response.success()) {
-                logger.info("Proactive message sent successfully");
+                logger.info("Proactive message sent successfully: id={}, trigger={}", messageId, triggerType);
             } else {
                 logger.warn("Failed to send proactive message: {}", response.response());
             }
@@ -589,7 +605,7 @@ public class ProactiveService {
         lastProactiveTime = Instant.now();
         String message = "提醒：" + reminder;
         logger.info("Proactive reminder: {}", reminder);
-        sendProactiveMessage(message);
+        sendProactiveMessage(message, "reminder");
     }
 
     /**
