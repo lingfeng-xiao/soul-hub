@@ -54,6 +54,114 @@
 
 ---
 
+## Sprint-S12: Dashboard数据连接
+
+### P1 - 核心功能
+
+| ID | 需求 | 状态 | 来源 |
+|----|------|------|------|
+| S12-1 | MemoryVisualizationService连接真实数据 | ✅ done | Sprint-S12 |
+| S12-2 | OwnerEmotionDashboardService连接真实数据 | ✅ done | Sprint-S12 |
+| S12-3 | EvolutionDashboardService连接真实数据 | ✅ done | Sprint-S12 |
+| S12-4 | 添加Dashboard API端点 | ✅ done | Sprint-S12 |
+
+### S12任务详情
+
+#### S12-1: MemoryVisualizationService连接真实数据
+
+**所属阶段**: S12 - Dashboard数据连接
+**优先级**: P1
+**状态**: ✅ done
+
+**背景/目标**: MemoryVisualizationService之前是占位实现，需要连接到真实MemorySystem数据
+
+**实现内容**:
+1. 重写generateVisualization(MemorySystem.Memory)方法使用真实数据
+2. 添加getAllPerceptive()到MemorySystem.LongTermMemory
+3. 实现calculateStrengthDistribution()、getMostActiveMemories()、getWeakestMemories()等辅助方法
+4. 添加/api/sprite/memory/visualization端点
+5. 添加/api/sprite/memory/timeline端点
+
+**依赖**: 无
+**验收标准**: Dashboard显示真实记忆数据
+
+**涉及文件**:
+- `MemoryVisualizationService.java`
+- `MemorySystem.java`
+- `SpriteService.java`
+- `SpriteController.java`
+
+---
+
+#### S12-2: OwnerEmotionDashboardService连接真实数据
+
+**所属阶段**: S12 - Dashboard数据连接
+**优先级**: P1
+**状态**: ✅ done
+
+**背景/目标**: OwnerEmotionDashboardService需要从EmotionHistoryService获取真实数据
+
+**实现内容**:
+1. 添加generateDashboardData(EmotionHistoryService)方法连接真实数据
+2. 实现Mood到String的映射
+3. 从WeeklyPattern、WeeklyContactAdvice获取真实分析数据
+4. 保留旧接口用于向后兼容
+
+**依赖**: S12-1
+**验收标准**: Dashboard显示真实情绪数据
+
+**涉及文件**:
+- `OwnerEmotionDashboardService.java`
+- `EmotionHistoryService.java`
+- `SpriteController.java`
+
+---
+
+#### S12-3: EvolutionDashboardService连接真实数据
+
+**所属阶段**: S12 - Dashboard数据连接
+**优先级**: P1
+**状态**: ✅ done
+
+**背景/目标**: EvolutionDashboardService需要暴露到API端点
+
+**实现内容**:
+1. 在SpriteService添加getEvolutionEngine()方法
+2. EvolutionDashboardService已有真实数据连接方法
+3. 添加/api/sprite/evolution/dashboard端点
+
+**依赖**: S12-1
+**验收标准**: Dashboard显示真实进化数据
+
+**涉及文件**:
+- `SpriteService.java`
+- `EvolutionDashboardService.java`
+- `SpriteController.java`
+
+---
+
+#### S12-4: 添加Dashboard API端点
+
+**所属阶段**: S12 - Dashboard数据连接
+**优先级**: P1
+**状态**: ✅ done
+
+**背景/目标**: 完成所有Dashboard服务的API端点暴露
+
+**实现内容**:
+1. 添加CognitionDashboardService依赖到SpriteController
+2. 添加/api/sprite/cognition/dashboard端点
+3. 确保所有Dashboard数据可通过REST API访问
+
+**依赖**: S12-1, S12-2, S12-3
+**验收标准**: 所有Dashboard数据可通过API访问
+
+**涉及文件**:
+- `SpriteController.java`
+- `CognitionDashboardService.java`
+
+---
+
 ## Sprint-S11: 新功能探索
 
 ### P1 - 核心功能增强
@@ -101,6 +209,7 @@
 | D11 | 为FeedbackTrackerService添加单元测试 | ✅ done | 循环改进 |
 | D12 | 为MemoryConsolidationService添加单元测试 | ✅ done | 循环改进 |
 | D13 | 为InteractionPreferenceLearningService添加单元测试 | ✅ done | 循环改进 |
+| D14 | 更新DEMAND_POOL添加S12任务详情 | ✅ done | Sprint-S12 |
 
 ---
 
