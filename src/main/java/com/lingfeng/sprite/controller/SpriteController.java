@@ -383,6 +383,47 @@ public class SpriteController {
         return ResponseEntity.ok(result);
     }
 
+    // ==================== S17: 全面备份接口 ====================
+
+    /**
+     * S17-1: POST /api/sprite/backup/config - 备份配置文件
+     */
+    @PostMapping("/backup/config")
+    public ResponseEntity<GitHubBackupService.BackupResult> backupConfigFiles(
+            @RequestParam(required = false) String commitMessage) {
+        GitHubBackupService.BackupResult result = gitHubBackupService.backupConfigFiles(commitMessage);
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * S17-2: POST /api/sprite/backup/snapshot - 备份代码快照
+     */
+    @PostMapping("/backup/snapshot")
+    public ResponseEntity<GitHubBackupService.BackupResult> backupCodeSnapshot(
+            @RequestParam(required = false) String commitMessage) {
+        GitHubBackupService.BackupResult result = gitHubBackupService.backupCodeSnapshot(commitMessage);
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * S17-3: GET /api/sprite/backup/versions - 列出所有备份版本
+     */
+    @GetMapping("/backup/versions")
+    public ResponseEntity<List<GitHubBackupService.BackupVersion>> listBackupVersions() {
+        List<GitHubBackupService.BackupVersion> versions = gitHubBackupService.listBackupVersions();
+        return ResponseEntity.ok(versions);
+    }
+
+    /**
+     * S17-4: POST /api/sprite/backup/rollback/{versionId} - 回滚到指定备份点
+     */
+    @PostMapping("/backup/rollback/{versionId}")
+    public ResponseEntity<GitHubBackupService.RollbackResult> rollbackTo(
+            @PathVariable String versionId) {
+        GitHubBackupService.RollbackResult result = gitHubBackupService.rollbackTo(versionId);
+        return ResponseEntity.ok(result);
+    }
+
     /**
      * 备份状态
      */

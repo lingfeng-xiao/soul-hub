@@ -14,6 +14,7 @@ public class AppConfig {
     private Llm llm = new Llm();
     private Owner owner = new Owner();
     private Evolution evolution = new Evolution();
+    private Backup backup = new Backup();
 
     public Cognition getCognition() {
         return cognition;
@@ -45,6 +46,14 @@ public class AppConfig {
 
     public void setEvolution(Evolution evolution) {
         this.evolution = evolution;
+    }
+
+    public Backup getBackup() {
+        return backup;
+    }
+
+    public void setBackup(Backup backup) {
+        this.backup = backup;
     }
 
     public static class Cognition {
@@ -182,6 +191,57 @@ public class AppConfig {
 
         public void setMinFeedbackForEvolution(int minFeedbackForEvolution) {
             this.minFeedbackForEvolution = minFeedbackForEvolution;
+        }
+    }
+
+    /**
+     * S17: 备份配置
+     */
+    public static class Backup {
+        private boolean memoryBackupEnabled = true;
+        private boolean configBackupEnabled = true;
+        private boolean codeSnapshotEnabled = true;
+        private int retentionDays = 30;
+        private String schedule = "0 */6 * * *"; // cron expression, default every 6 hours
+
+        public boolean isMemoryBackupEnabled() {
+            return memoryBackupEnabled;
+        }
+
+        public void setMemoryBackupEnabled(boolean memoryBackupEnabled) {
+            this.memoryBackupEnabled = memoryBackupEnabled;
+        }
+
+        public boolean isConfigBackupEnabled() {
+            return configBackupEnabled;
+        }
+
+        public void setConfigBackupEnabled(boolean configBackupEnabled) {
+            this.configBackupEnabled = configBackupEnabled;
+        }
+
+        public boolean isCodeSnapshotEnabled() {
+            return codeSnapshotEnabled;
+        }
+
+        public void setCodeSnapshotEnabled(boolean codeSnapshotEnabled) {
+            this.codeSnapshotEnabled = codeSnapshotEnabled;
+        }
+
+        public int getRetentionDays() {
+            return retentionDays;
+        }
+
+        public void setRetentionDays(int retentionDays) {
+            this.retentionDays = retentionDays;
+        }
+
+        public String getSchedule() {
+            return schedule;
+        }
+
+        public void setSchedule(String schedule) {
+            this.schedule = schedule;
         }
     }
 }
