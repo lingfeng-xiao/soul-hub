@@ -11,9 +11,10 @@ import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 /**
- * S11-2: 外部API适配器服务
+ * S11-2: 外部API适配器服务 - S13-2: 添加Spring服务注解
  *
  * 提供统一的外部API调用接口：
  * - 天气API
@@ -24,6 +25,7 @@ import org.slf4j.LoggerFactory;
  *
  * 支持重试、超时、缓存
  */
+@Service
 public class ExternalApiAdapterService {
 
     private static final Logger logger = LoggerFactory.getLogger(ExternalApiAdapterService.class);

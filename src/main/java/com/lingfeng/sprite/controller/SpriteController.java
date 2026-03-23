@@ -23,6 +23,7 @@ import com.lingfeng.sprite.service.MemoryVisualizationService;
 import com.lingfeng.sprite.service.OwnerEmotionDashboardService;
 import com.lingfeng.sprite.service.EvolutionDashboardService;
 import com.lingfeng.sprite.service.CognitionDashboardService;
+import com.lingfeng.sprite.service.ExternalApiAdapterService;
 import com.lingfeng.sprite.service.SpriteService;
 
 /**
@@ -44,6 +45,7 @@ public class SpriteController {
     private final OwnerEmotionDashboardService emotionDashboardService;
     private final EvolutionDashboardService evolutionDashboardService;
     private final CognitionDashboardService cognitionDashboardService;
+    private final ExternalApiAdapterService externalApiService;
 
     public SpriteController(
             SpriteService spriteService,
@@ -55,7 +57,8 @@ public class SpriteController {
             MemoryVisualizationService memoryVisualizationService,
             OwnerEmotionDashboardService emotionDashboardService,
             EvolutionDashboardService evolutionDashboardService,
-            CognitionDashboardService cognitionDashboardService
+            CognitionDashboardService cognitionDashboardService,
+            ExternalApiAdapterService externalApiService
     ) {
         this.spriteService = spriteService;
         this.healthMonitorService = healthMonitorService;
@@ -67,6 +70,7 @@ public class SpriteController {
         this.emotionDashboardService = emotionDashboardService;
         this.evolutionDashboardService = evolutionDashboardService;
         this.cognitionDashboardService = cognitionDashboardService;
+        this.externalApiService = externalApiService;
     }
 
     /**
@@ -394,6 +398,53 @@ public class SpriteController {
     public ResponseEntity<Void> stop() {
         spriteService.stop();
         return ResponseEntity.ok().build();
+    }
+
+    // ==================== S13-2: 外部API接口 ====================
+
+    /**
+     * S13-2: GET /api/sprite/external/weather - 查询天气
+     */
+    @GetMapping("/external/weather")
+    public ResponseEntity<ExternalApiAdapterService.ApiResponse> getWeather(
+            @RequestParam String city) {
+        ExternalApiAdapterService.ApiResponse response = externalApiService.getWeather(city);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * S13-2: GET /api/sprite/external/news - 查询新闻
+     */
+    @GetMapping("/external/news")
+    public ResponseEntity<ExternalApiAdapterService.ApiResponse> getNews(
+            @RequestParam(defaultValue = "general") String topic,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int pageSize) {
+        ExternalApiAdapterService.ApiResponse response = externalApiService.getNews(topic, page, pageSize);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * S13-2: GET /api/sprite/external/search - 网络搜索
+     */
+    @GetMapping("/external/search")
+    public ResponseEntity<ExternalApiAdapterService.ApiResponse> search(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "5") int numResults) {
+        ExternalApiAdapterService.ApiResponse response = externalApiService.search(query, numResults);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * S13-2: GET /api/sprite/external/translate - 翻译
+     */
+    @GetMapping("/external/translate")
+    public ResponseEntity<ExternalApiAdapterService.ApiResponse> translate(
+            @RequestParam String text,
+            @RequestParam(defaultValue = "auto") String from,
+            @RequestParam(defaultValue = "zh") String to) {
+        ExternalApiAdapterService.ApiResponse response = externalApiService.translate(text, from, to);
+        return ResponseEntity.ok(response);
     }
 
     /**
