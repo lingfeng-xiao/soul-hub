@@ -33,6 +33,9 @@
    - [6.1 RealPlatformSensor](#61-realplatformsensor)
    - [6.2 RealUserSensor](#62-realusersensor)
    - [6.3 RealEnvironmentSensor](#63-realenvironmentsensor)
+   - [6.4 AudioSensor](#64-audiosensor-s9)
+   - [6.5 LocationSensor](#65-locationsensor-s9)
+   - [6.6 DeviceStateSensor](#66-devicestatesensor-s9)
 7. [LLM Integration](#7-llm-integration)
    - [7.1 MinMaxLlmReasoner](#71-minmaxllmreasoner)
    - [7.2 ChatModels (Shared Data Types)](#72-chatmodels-shared-data-types)
@@ -737,6 +740,57 @@ Time-based context inference.
 | 20-21| Leisure | Leisure |
 | 22-23| Ritual  | Ritual  |
 | 0-5  | Sleep   | Sleep   |
+
+### 6.4 AudioSensor (S9)
+
+Sound context detection via audio pipeline analysis.
+
+**File**: `src/main/java/com/lingfeng/sprite/sensor/AudioSensor.java`
+
+**Features**:
+- Cross-platform audio detection (Windows via DirectX, Linux via ALSA/PulseAudio)
+- Headphone detection
+- Sound context inference: UNKNOWN, SILENT, MUSIC, VIDEO, VOICE_CALL, NOTIFICATION, TYPING, AMBIENT
+
+**Key Types**:
+```java
+AudioInfo(available, playing, volume, headphoneConnected, appName, soundContext)
+SoundContext(UNKNOWN, SILENT, MUSIC, VIDEO, VOICE_CALL, NOTIFICATION, TYPING, AMBIENT)
+```
+
+### 6.5 LocationSensor (S9)
+
+Location inference via timezone and IP-based geolocation.
+
+**File**: `src/main/java/com/lingfeng/sprite/sensor/LocationSensor.java`
+
+**Features**:
+- Timezone-based location inference
+- Location type detection: HOME, WORK, TRAVELING, OUTDOOR, UNKNOWN
+- IP-based geolocation via ip-api.com
+
+**Key Types**:
+```java
+LocationInfo(timestamp, country, city, timezone, locationType, latitude, longitude)
+```
+
+### 6.6 DeviceStateSensor (S9)
+
+Device state monitoring including power, network, and storage.
+
+**File**: `src/main/java/com/lingfeng/sprite/sensor/DeviceStateSensor.java`
+
+**Features**:
+- Device mode detection: DESKTOP, LAPTOP, TABLET, PHONE, SERVER
+- Power state: PLUGGED_IN, ON_BATTERY, LOW_BATTERY, CHARGING, FULL_POWER
+- Network type: WIFI, ETHERNET, MOBILE, BLUETOOTH, OFFLINE
+- Display state: ON, OFF, LOCKED, SLEEP
+- CPU temperature and thermal throttling detection
+
+**Key Types**:
+```java
+DeviceStateInfo(deviceMode, powerState, networkType, displayState, cpuTemp, thermalThrottling)
+```
 
 ---
 
