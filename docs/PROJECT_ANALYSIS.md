@@ -25,6 +25,9 @@
 | RealPlatformSensor | ✅ 真实数据 | OSHI库采集CPU/内存/磁盘/网络/电池 |
 | RealUserSensor | ⚠️ 部分实现 | JNA窗口追踪，Linux下返回UNKNOWN |
 | RealEnvironmentSensor | ⚠️ 仅时间 | 基于时间的上下文推断 |
+| AudioSensor | ✅ S9 | 声音上下文检测(静音/音乐/语音) |
+| LocationSensor | ✅ S9 | 位置推断(时区/IP地理位置) |
+| DeviceStateSensor | ✅ S9 | 设备状态(电源/网络/存储) |
 
 ### 3.2 认知层 (Cognition)
 | 组件 | 状态 | 说明 |
@@ -63,6 +66,11 @@
 | EvolutionService | ✅ | 进化应用 |
 | UnifiedContextService | ✅ | 上下文桥接 |
 | AvatarService | ✅ | Avatar管理 |
+| WebhookService | ✅ S11 | Webhook事件通知 |
+| ExternalApiAdapterService | ✅ S11 | 外部API统一调用 |
+| HotReloadConfigService | ✅ S11 | 配置热更新 |
+| PerformanceMonitorService | ✅ S11 | 性能监控 |
+| ApiDocService | ✅ S11 | API文档生成 |
 
 ### 3.6 动作插件 (Action Plugins)
 - LogAction ✅
