@@ -8,6 +8,8 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 行为信号情感推断器 - 基于行为模式推断主人情绪
@@ -31,7 +33,7 @@ public class BehaviorEmotionInferrer {
 
     private final ZoneId timezone = ZoneId.of("Asia/Shanghai");
     private Instant lastPresenceChange = Instant.now();
-    private OwnerModel.PresenceStatus lastPresence = OwnerModel.PresenceStatus.UNKNOWN;
+    private PerceptionSystem.PresenceStatus lastPresence = PerceptionSystem.PresenceStatus.UNKNOWN;
     private int appSwitchCount = 0;
     private String lastAppType = null;
     private Instant lastAppSwitchTime = Instant.now();
@@ -46,7 +48,7 @@ public class BehaviorEmotionInferrer {
     public OwnerModel.EmotionalState infer(PerceptionSystem.Perception perception, WorldModel.World worldModel) {
         OwnerModel.Mood baseMood = OwnerModel.Mood.NEUTRAL;
         float intensity = 0.5f;
-        String reason = "";
+        List<String> triggers = new ArrayList<>();
 
         // 1. 基于应用类型调整情绪
         if (perception != null && perception.user() != null && perception.user().activeWindow() != null) {
@@ -54,7 +56,7 @@ public class BehaviorEmotionInferrer {
             var moodAdjustment = inferFromAppType(appType);
             baseMood = moodAdjustment.mood();
             intensity = moodAdjustment.intensity();
-            reason = moodAdjustment.reason();
+            triggers.add(moodAdjustment.reason());
         }
 
         // 2. 基于存在状态调整
@@ -67,7 +69,7 @@ public class BehaviorEmotionInferrer {
             if (presenceMood.intensity() > intensity) {
                 baseMood = presenceMood.mood();
                 intensity = presenceMood.intensity();
-                reason = presenceMood.reason();
+                triggers.add(presenceMood.reason());
             }
         }
 
@@ -76,7 +78,7 @@ public class BehaviorEmotionInferrer {
         if (timeMood.intensity() > intensity) {
             baseMood = timeMood.mood();
             intensity = timeMood.intensity();
-            reason = timeMood.reason();
+            triggers.add(timeMood.reason());
         }
 
         // 4. 基于活动上下文调整
@@ -86,7 +88,7 @@ public class BehaviorEmotionInferrer {
             if (activityMood.intensity() > intensity) {
                 baseMood = activityMood.mood();
                 intensity = activityMood.intensity();
-                reason = activityMood.reason();
+                triggers.add(activityMood.reason());
             }
         }
 
@@ -97,10 +99,10 @@ public class BehaviorEmotionInferrer {
         if (appSwitchCount > 3 && intensity < 0.7f) {
             baseMood = OwnerModel.Mood.ANXIOUS;
             intensity = 0.6f;
-            reason = "频繁切换应用";
+            triggers.add("频繁切换应用");
         }
 
-        return new OwnerModel.EmotionalState(baseMood, intensity, Instant.now(), reason);
+        return new OwnerModel.EmotionalState(baseMood, intensity, triggers, List.of(), null);
     }
 
     /**
@@ -112,11 +114,11 @@ public class BehaviorEmotionInferrer {
         }
 
         return switch (appType) {
-            case DEVELOPMENT -> new MoodAdjustment(OwnerModel.Mood.FOCUSED, 0.7f, "开发中-专注");
-            case CHAT -> new MoodAdjustment(OwnerModel.Mood.RELAXED, 0.5f, "聊天中-放松");
+            case DEVELOPMENT -> new MoodAdjustment(OwnerModel.Mood.CONFIDENT, 0.7f, "开发中-专注");
+            case CHAT -> new MoodAdjustment(OwnerModel.Mood.CALM, 0.5f, "聊天中-放松");
             case BROWSER -> new MoodAdjustment(OwnerModel.Mood.CALM, 0.5f, "浏览中");
             case MEDIA -> new MoodAdjustment(OwnerModel.Mood.HAPPY, 0.6f, "媒体播放-愉悦");
-            case PRODUCTIVITY -> new MoodAdjustment(OwnerModel.Mood.FOCUSED, 0.6f, "工作中");
+            case PRODUCTIVITY -> new MoodAdjustment(OwnerModel.Mood.CONFIDENT, 0.6f, "工作中");
             case SYSTEM -> new MoodAdjustment(OwnerModel.Mood.NEUTRAL, 0.3f, "系统操作");
             default -> new MoodAdjustment(OwnerModel.Mood.NEUTRAL, 0.3f, "其他活动");
         };
@@ -147,7 +149,7 @@ public class BehaviorEmotionInferrer {
         };
 
         // 电量低时增加焦虑
-        if (battery != null && !battery.isCharging() && battery.percent() < 20) {
+        if (battery != null && !battery.isCharging() && battery.chargePercent() < 20) {
             mood = OwnerModel.Mood.ANXIOUS;
             baseIntensity = 0.7f;
             reason += ", 电量低";
@@ -175,7 +177,7 @@ public class BehaviorEmotionInferrer {
 
         // 午休时段 - 放松
         if (hour >= 12 && hour < 14) {
-            return new MoodAdjustment(OwnerModel.Mood.RELAXED, 0.5f, "午休时段");
+            return new MoodAdjustment(OwnerModel.Mood.CALM, 0.5f, "午休时段");
         }
 
         // 下午疲惫时段
@@ -185,7 +187,7 @@ public class BehaviorEmotionInferrer {
 
         // 傍晚 - 放松
         if (hour >= 17 && hour < 22) {
-            return new MoodAdjustment(OwnerModel.Mood.RELAXED, 0.5f, "傍晚放松");
+            return new MoodAdjustment(OwnerModel.Mood.CALM, 0.5f, "傍晚放松");
         }
 
         return new MoodAdjustment(OwnerModel.Mood.NEUTRAL, 0.3f, "普通时段");
@@ -200,8 +202,8 @@ public class BehaviorEmotionInferrer {
         }
 
         return switch (activity) {
-            case WORK -> new MoodAdjustment(OwnerModel.Mood.FOCUSED, 0.6f, "工作模式");
-            case LEISURE -> new MoodAdjustment(OwnerModel.Mood.RELAXED, 0.6f, "休闲模式");
+            case WORK -> new MoodAdjustment(OwnerModel.Mood.CONFIDENT, 0.6f, "工作模式");
+            case LEISURE -> new MoodAdjustment(OwnerModel.Mood.CALM, 0.6f, "休闲模式");
             case CREATIVE -> new MoodAdjustment(OwnerModel.Mood.HAPPY, 0.7f, "创作模式");
             case SOCIAL -> new MoodAdjustment(OwnerModel.Mood.HAPPY, 0.6f, "社交模式");
             case IDLE -> new MoodAdjustment(OwnerModel.Mood.NEUTRAL, 0.3f, "空闲中");
