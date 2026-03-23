@@ -2,9 +2,113 @@
 
 ## 当前阶段
 
-**当前Sprint**: 全部完成
-**整体进度**: 100%
+**当前Sprint**: Sprint-S11: 新功能探索 ✅ 已完成
+**整体进度**: 100% (全部Sprint完成)
 **状态**: ✅ 项目完成
+
+---
+
+## Sprint-S11: 新功能探索
+
+### 阶段目标
+1. S11-1: Webhook集成
+2. S11-2: 外部API适配器
+3. S11-3: 配置热更新
+4. S11-4: 性能监控
+5. S11-5: 单元测试覆盖
+6. S11-6: 集成测试
+7. S11-7: API文档自动化
+
+### 任务状态
+
+| ID | 任务 | 状态 | 负责人 | 开始日期 | 完成日期 |
+|----|------|------|--------|----------|----------|
+| S11-1 | Webhook集成 | ✅ done | - | 2026-03-24 | 2026-03-24 |
+| S11-2 | 外部API适配器 | ✅ done | - | 2026-03-24 | 2026-03-24 |
+| S11-3 | 配置热更新 | ✅ done | - | 2026-03-24 | 2026-03-24 |
+| S11-4 | 性能监控 | ✅ done | - | 2026-03-24 | 2026-03-24 |
+| S11-5 | 单元测试覆盖 | ✅ done | - | 2026-03-24 | 2026-03-24 |
+| S11-6 | 集成测试 | ✅ done | - | 2026-03-24 | 2026-03-24 |
+| S11-7 | API文档自动化 | ✅ done | - | 2026-03-24 | 2026-03-24 |
+
+### 完成内容
+- S11-1:
+  - 新增 `WebhookService.java` - Webhook集成服务
+  - 新增 `WebhookEndpoint` 记录类型 - Webhook端点配置
+  - 新增 `WebhookEvent` 记录类型 - Webhook事件
+  - 新增 `WebhookDispatcher` 内部类 - Webhook投递器
+  - 新增 `EventType` 枚举 - 事件类型（启动/停止/情绪变化/决策/动作等）
+  - 新增 `DeliveryResult` 记录类型 - 投递结果
+  - 新增 `WebhookStats` 记录类型 - Webhook统计
+  - 实现端点注册/注销/更新
+  - 实现事件触发和投递
+  - 支持签名验证（可选）
+- S11-2:
+  - 新增 `ExternalApiAdapterService.java` - 外部API适配器服务
+  - 新增 `ApiEndpoint` 记录类型 - API端点配置
+  - 新增 `ApiResponse` 记录类型 - API响应
+  - 新增 `ApiType` 枚举 - API类型（天气/新闻/日历/提醒/搜索/翻译）
+  - 新增 `CachedResponse` 记录类型 - 缓存响应
+  - 新增 `ApiStats` 记录类型 - API统计
+  - 实现端点注册和管理
+  - 实现通用API调用和异步API调用
+  - 实现响应缓存（默认5分钟TTL）
+- S11-3:
+  - 新增 `HotReloadConfigService.java` - 配置热更新服务
+  - 新增 `ConfigEntry` 记录类型 - 配置条目
+  - 新增 `ConfigCallback` 接口 - 配置变更回调
+  - 新增 `ConfigStats` 记录类型 - 配置统计
+  - 支持JSON/YAML配置文件解析
+  - 实现配置加载/保存/更新
+  - 实现文件监听和变更自动检测
+  - 实现回调机制通知配置变更
+  - 支持嵌套key更新（如 "database.connection.timeout"）
+  - 实现配置备份和版本管理
+- S11-4:
+  - 新增 `PerformanceMonitorService.java` - 性能监控服务
+  - 新增 `MetricPoint` 记录类型 - 指标数据点
+  - 新增 `MetricGauge` 记录类型 - 指标仪表
+  - 新增 `MetricType` 枚举 - 指标类型（GAUGE/COUNTER/TIMER）
+  - 新增 `PerformanceSnapshot` 记录类型 - 性能快照
+  - 新增 `MemoryInfo`/`ThreadInfo`/`SystemInfo` 记录类型
+  - 新增 `Alert`/`AlertLevel` 告警相关类型
+  - 实现JVM内存/线程/CPU监控
+  - 实现自定义指标注册和记录
+  - 实现性能历史记录（最多1000条）
+  - 实现计时器上下文（AutoCloseable）
+  - 实现告警检查和性能报告生成
+- S11-5:
+  - 新增单元测试目录结构 `src/test/java/com/lingfeng/sprite/service/`
+  - 新增 `WebhookServiceTest.java` - WebhookService完整单元测试
+  - 新增 `ExternalApiAdapterServiceTest.java` - ExternalApiAdapterService完整单元测试
+  - 新增 `HotReloadConfigServiceTest.java` - HotReloadConfigService完整单元测试
+  - 新增 `PerformanceMonitorServiceTest.java` - PerformanceMonitorService完整单元测试
+  - 测试覆盖：端点注册/注销/更新、事件触发、API调用、配置加载/保存/更新、指标记录等核心功能
+- S11-6:
+  - 新增 `IntegrationTest.java` - 服务集成测试
+  - 测试服务间协作（Webhook + PerformanceMonitor）
+  - 测试配置热更新与性能监控联动
+  - 测试服务初始化和统计数据一致性
+  - 测试WebHook端点追踪和统计
+  - 测试API端点注册和管理
+  - 测试性能快照一致性和计时器
+  - 测试历史数据保留和告警生成
+  - 测试配置完整生命周期
+  - 测试事件类型和API类型全覆盖
+  - 测试缓存机制和备份恢复
+  - 测试服务统计一致性
+- S11-7:
+  - 新增 `ApiDocService.java` - API文档自动化服务
+  - 新增 `ApiEndpointDoc`/`ApiServiceDoc`/`ApiParameterDoc` 记录类型
+  - 新增 `ApiRequestBodyDoc`/`ApiResponseDoc`/`ApiSchemaDoc` 记录类型
+  - 新增 `ApiChangeRecord`/`ApiDocStats`/`ApiDocumentation` 记录类型
+  - 实现端点注册（简化版和完整版）
+  - 实现服务注册和管理
+  - 实现按标签/路径前缀/搜索获取端点
+  - 实现OpenAPI格式文档生成
+  - 实现变更历史追踪
+  - 实现JSON格式导出
+  - 新增 `ApiDocServiceTest.java` - ApiDocService完整单元测试
 
 ---
 
