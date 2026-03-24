@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.lingfeng.sprite.Sprite;
 import com.lingfeng.sprite.service.EmotionHistoryService;
 import com.lingfeng.sprite.service.EmotionHistoryService.EmotionRecord;
-import com.lingfeng.sprite.service.EmotionHistoryService.Mood;
+import com.lingfeng.sprite.OwnerModel.Mood;
 import com.lingfeng.sprite.service.PushNotificationService;
 import com.lingfeng.sprite.service.PushNotificationService.DeviceInfo;
 import com.lingfeng.sprite.service.PushNotificationService.PendingNotification;
@@ -65,15 +65,15 @@ public class MobileApiController {
         Sprite.State state = spriteService.getState();
 
         MobileStatus status = new MobileStatus(
-                state.identity().identity().name(),
+                state.identity().identity().displayName(),
                 state.identity().identity().emoji(),
                 state.platform().name(),
                 state.isRunning(),
                 state.lastCycleTime(),
-                state.memoryStatus() != null ? state.memoryStatus().sensoryMemorySize() : 0,
-                state.memoryStatus() != null ? state.memoryStatus().workingMemorySize() : 0,
-                state.memoryStatus() != null ? state.memoryStatus().longTermMemorySize() : 0,
-                state.evolutionLevel(),
+                state.memoryStatus() != null ? state.memoryStatus().sensoryStimuliCount() : 0,
+                state.memoryStatus() != null ? state.memoryStatus().workingMemoryItems() : 0,
+                state.memoryStatus() != null ? state.memoryStatus().longTermStats().totalMemories() : 0,
+                state.identity().evolutionLevel(),
                 state.hasLlmSupport()
         );
 
@@ -297,7 +297,7 @@ public class MobileApiController {
         List<PendingNotification> notifications = pushNotificationService.getPendingNotifications(deviceId);
 
         SyncData syncData = new SyncData(
-                state.identity().identity().name(),
+                state.identity().identity().displayName(),
                 state.identity().identity().emoji(),
                 state.isRunning(),
                 state.lastCycleTime(),

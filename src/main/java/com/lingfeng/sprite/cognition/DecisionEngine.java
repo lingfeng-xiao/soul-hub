@@ -129,6 +129,51 @@ public class DecisionEngine {
             String explanation
     ) {}
 
+    /**
+     * S6-4: 决策规则
+     */
+    public record DecisionRule(
+            String ruleId,
+            String description,
+            List<DecisionDimension> dimensions,
+            float conditionThreshold,
+            String actionType,
+            int priority,
+            boolean enabled
+    ) {}
+
+    /**
+     * S6-4: 规则匹配日志
+     */
+    public record RuleMatchLog(
+            Instant timestamp,
+            String ruleId,
+            String description,
+            float matchScore,
+            boolean matched,
+            Map<String, Float> dimensionScores
+    ) {}
+
+    /**
+     * S6-4: 规则匹配结果
+     */
+    public record RuleMatchResult(
+            List<DecisionRule> matchedRules,
+            float highestScore,
+            String reasoning
+    ) {}
+
+    /**
+     * S6-4: 决策规则可视化
+     */
+    public record DecisionRuleVisualization(
+            List<DecisionRule> rules,
+            List<RuleMatchLog> matchLogs,
+            Map<String, String> dimensionDescriptions,
+            Map<String, Float> currentWeights,
+            String strategy
+    ) {}
+
     // 意图类型 → 动作类型的映射规则
     private static final Map<ReasoningEngine.ReasoningType, String> INTENT_ACTION_MAP = new ConcurrentHashMap<>();
     // 动作优先级
@@ -445,12 +490,7 @@ public class DecisionEngine {
         }
 
         // 获取当前时间上下文
-        var envContext = worldModel.owner().context().environment();
-        if (envContext == null) {
-            return 0.5f;
-        }
-
-        var contextType = envContext.context();
+        var contextType = worldModel.currentContext().activity();
         if (contextType == null) {
             return 0.5f;
         }
@@ -458,11 +498,10 @@ public class DecisionEngine {
         // 根据上下文类型评估时间是否合适
         return switch (contextType) {
             case WORK -> 0.8f;      // 工作时间可能需要关注
-            case MEETING -> 0.3f;    // 会议中不合适打扰
-            case COMMUTE -> 0.5f;    // 通勤时间看情况
-            case LEISURE -> 0.9f;    // 休闲时间是好的联系时机
-            case RITUAL -> 0.7f;     // 晨间习惯时间可以
-            case SLEEP -> 0.1f;      // 睡眠时间不合适
+            case MEAL -> 0.3f;      // 用餐时间不合适打扰
+            case COMMUTE -> 0.5f;   // 通勤时间看情况
+            case LEISURE -> 0.9f;   // 休闲时间是好的联系时机
+            case SLEEP -> 0.1f;     // 睡眠时间不合适打扰
             default -> 0.5f;
         };
     }

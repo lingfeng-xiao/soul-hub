@@ -609,7 +609,11 @@ public class SelfLearningService {
             self.metacognition(),
             self.growthHistory(),
             self.evolutionLevel(),
-            self.evolutionCount() + 1
+            self.evolutionCount() + 1,
+            List.of(),
+            List.of(),
+            LearningMetrics.empty(),
+            AutonomousState.createDefault()
         );
     }
 

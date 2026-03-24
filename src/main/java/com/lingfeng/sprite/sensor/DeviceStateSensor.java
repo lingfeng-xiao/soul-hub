@@ -204,7 +204,7 @@ public class DeviceStateSensor implements Sensor {
             if (powerSources != null && !powerSources.isEmpty()) {
                 var ps = powerSources.get(0);
                 boolean isCharging = ps.isCharging();
-                float remainingPercent = ps.getRemainingCapacityPercent() * 100;
+                float remainingPercent = (float) ps.getRemainingCapacityPercent() * 100;
 
                 if (isCharging) {
                     return PowerState.CHARGING;
@@ -225,9 +225,9 @@ public class DeviceStateSensor implements Sensor {
      */
     private NetworkType detectNetworkType() {
         try {
-            java.net.NetworkInterface[] interfaces = java.net.NetworkInterface.getNetworkInterfaces();
-            while (interfaces.hasMoreElements()) {
-                java.net.NetworkInterface ni = interfaces.nextElement();
+            java.util.Enumeration<java.net.NetworkInterface> interfaceEnum = java.net.NetworkInterface.getNetworkInterfaces();
+            while (interfaceEnum.hasMoreElements()) {
+                java.net.NetworkInterface ni = interfaceEnum.nextElement();
                 if (ni.isUp() && !ni.isLoopback()) {
                     String name = ni.getDisplayName().toLowerCase();
                     if (name.contains("wi-fi") || name.contains("wlan") || name.contains("wifi")) {
@@ -319,12 +319,11 @@ public class DeviceStateSensor implements Sensor {
             oshi.SystemInfo si = new oshi.SystemInfo();
             var sensors = si.getHardware().getSensors();
             if (sensors != null) {
-                float[] temps = sensors.getCpuTemperatures();
-                if (temps != null && temps.length > 0) {
-                    return temps[0];
-                }
+                // CPU temperature not consistently available across platforms
+                // Return -1 to indicate not available
+                return -1f;
             }
-            return 0f;
+            return -1f;
         } catch (Exception e) {
             return 0f;
         }

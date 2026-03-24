@@ -471,7 +471,7 @@ public final class SelfModel {
             GrowthEvent event = new GrowthEvent(Instant.now(), type, description, before, after, trigger);
             List<GrowthEvent> newHistory = new ArrayList<>(growthHistory);
             newHistory.add(event);
-            return new Self(identity, personality, capabilities, avatars, metacognition, newHistory, evolutionLevel, evolutionCount + 1, learnedSkills, selfGoals, learningMetrics);
+            return new Self(identity, personality, capabilities, avatars, metacognition, newHistory, evolutionLevel, evolutionCount + 1, learnedSkills, selfGoals, learningMetrics, autonomousState);
         }
 
         /**
@@ -520,7 +520,8 @@ public final class SelfModel {
                 evolutionCount,
                 learnedSkills,
                 selfGoals,
-                learningMetrics
+                learningMetrics,
+                autonomousState
             );
         }
 
@@ -537,15 +538,15 @@ public final class SelfModel {
 
         // With methods for immutable updates
         public Self withIdentity(IdentityCore newIdentity) {
-            return new Self(newIdentity, personality, capabilities, avatars, metacognition, growthHistory, evolutionLevel, evolutionCount, learnedSkills, selfGoals, learningMetrics);
+            return new Self(newIdentity, personality, capabilities, avatars, metacognition, growthHistory, evolutionLevel, evolutionCount, learnedSkills, selfGoals, learningMetrics, autonomousState);
         }
 
         public Self withCapabilities(List<Capability> newCapabilities) {
-            return new Self(identity, personality, newCapabilities, avatars, metacognition, growthHistory, evolutionLevel, evolutionCount, learnedSkills, selfGoals, learningMetrics);
+            return new Self(identity, personality, newCapabilities, avatars, metacognition, growthHistory, evolutionLevel, evolutionCount, learnedSkills, selfGoals, learningMetrics, autonomousState);
         }
 
         public Self withPersonality(Personality newPersonality) {
-            return new Self(identity, newPersonality, capabilities, avatars, metacognition, growthHistory, evolutionLevel, evolutionCount, learnedSkills, selfGoals, learningMetrics);
+            return new Self(identity, newPersonality, capabilities, avatars, metacognition, growthHistory, evolutionLevel, evolutionCount, learnedSkills, selfGoals, learningMetrics, autonomousState);
         }
 
         // S21: Self-learning methods
@@ -567,7 +568,7 @@ public final class SelfModel {
                 newSkills.stream().limit(10).toList(),
                 selfGoals
             );
-            return new Self(identity, personality, capabilities, avatars, metacognition, growthHistory, evolutionLevel, evolutionCount, newSkills, selfGoals, newMetrics);
+            return new Self(identity, personality, capabilities, avatars, metacognition, growthHistory, evolutionLevel, evolutionCount, newSkills, selfGoals, newMetrics, autonomousState);
         }
 
         /**
@@ -587,7 +588,7 @@ public final class SelfModel {
                 learnedSkills.stream().limit(10).toList(),
                 newGoals
             );
-            return new Self(identity, personality, capabilities, avatars, metacognition, growthHistory, evolutionLevel, evolutionCount, learnedSkills, newGoals, newMetrics);
+            return new Self(identity, personality, capabilities, avatars, metacognition, growthHistory, evolutionLevel, evolutionCount, learnedSkills, newGoals, newMetrics, autonomousState);
         }
 
         /**
@@ -631,7 +632,7 @@ public final class SelfModel {
                 updatedGoals
             );
 
-            return new Self(identity, personality, capabilities, avatars, metacognition, growthHistory, evolutionLevel, evolutionCount, learnedSkills, updatedGoals, newMetrics);
+            return new Self(identity, personality, capabilities, avatars, metacognition, growthHistory, evolutionLevel, evolutionCount, learnedSkills, updatedGoals, newMetrics, autonomousState);
         }
 
         /**
@@ -649,7 +650,7 @@ public final class SelfModel {
                 learnedSkills.stream().limit(10).toList(),
                 selfGoals
             );
-            return new Self(identity, personality, capabilities, avatars, metacognition, growthHistory, evolutionLevel, evolutionCount, learnedSkills, selfGoals, newMetrics);
+            return new Self(identity, personality, capabilities, avatars, metacognition, growthHistory, evolutionLevel, evolutionCount, learnedSkills, selfGoals, newMetrics, autonomousState);
         }
 
         /**

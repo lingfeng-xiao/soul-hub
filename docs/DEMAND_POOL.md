@@ -54,6 +54,473 @@
 
 ---
 
+## Sprint-S14: 多设备协同
+
+### P1 - 核心功能
+
+| ID | 需求 | 状态 | 来源 |
+|----|------|------|------|
+| S14-1 | 多设备状态同步 | ✅ done | Sprint-S14 |
+| S14-2 | 设备注册与发现 | ✅ done | Sprint-S14 |
+| S14-3 | 跨设备消息传递 | ✅ done | Sprint-S14 |
+| S14-4 | 分身协调策略 | ✅ done | Sprint-S14 |
+
+---
+
+## Sprint-S15: 高级感知系统
+
+### P1 - 核心功能
+
+| ID | 需求 | 状态 | 来源 |
+|----|------|------|------|
+| S15-1 | 感知管道重构 | ✅ done | Sprint-S15 |
+| S15-2 | 多模态融合 | ✅ done | Sprint-S15 |
+| S15-3 | 感知质量评估 | ✅ done | Sprint-S15 |
+| S15-4 | 感知自适应 | ✅ done | Sprint-S15 |
+
+---
+
+## Sprint-S16: 快速反应通道
+
+### P1 - 核心功能
+
+| ID | 需求 | 状态 | 来源 |
+|----|------|------|------|
+| S16-1 | 快速反应处理器 | ✅ done | Sprint-S16 |
+| S16-2 | 紧急事件队列 | ✅ done | Sprint-S16 |
+| S16-3 | 反应优先级 | ✅ done | Sprint-S16 |
+| S16-4 | 异步动作回调 | ✅ done | Sprint-S16 |
+
+---
+
+## Sprint-S17: GitHub备份增强
+
+### P1 - 核心功能
+
+| ID | 需求 | 状态 | 来源 |
+|----|------|------|------|
+| S17-1 | 增量备份优化 | ✅ done | Sprint-S17 |
+| S17-2 | 备份完整性校验 | ✅ done | Sprint-S17 |
+| S17-3 | 备份压缩 | ✅ done | Sprint-S17 |
+| S17-4 | 自动备份策略 | ✅ done | Sprint-S17 |
+
+---
+
+## Sprint-S18: 移动伴侣API
+
+### P1 - 核心功能
+
+| ID | 需求 | 状态 | 来源 |
+|----|------|------|------|
+| S18-1 | 推送通知服务 | ✅ done | Sprint-S18 |
+| S18-2 | 设备配对API | ✅ done | Sprint-S18 |
+| S18-3 | 状态同步API | ✅ done | Sprint-S18 |
+| S18-4 | 命令执行API | ✅ done | Sprint-S18 |
+
+---
+
+## Sprint-S19: 进化引擎
+
+### P1 - 核心功能
+
+| ID | 需求 | 状态 | 来源 |
+|----|------|------|------|
+| S19-1 | 进化策略管理 | ✅ done | Sprint-S19 |
+| S19-2 | 适应度评估 | ✅ done | Sprint-S19 |
+| S19-3 | 进化历史追踪 | ✅ done | Sprint-S19 |
+| S19-4 | 进化稳定性 | ✅ done | Sprint-S19 |
+
+---
+
+## Sprint-S20: 记忆检索增强
+
+### P1 - 核心功能
+
+| ID | 需求 | 状态 | 来源 |
+|----|------|------|------|
+| S20-1 | 向量检索优化 | ✅ done | Sprint-S20 |
+| S20-2 | 混合检索 | ✅ done | Sprint-S20 |
+| S20-3 | 检索缓存 | ✅ done | Sprint-S20 |
+| S20-4 | 检索质量评估 | ✅ done | Sprint-S20 |
+
+---
+
+## Sprint-S21: 自我学习系统
+
+### P1 - 核心功能
+
+| ID | 需求 | 状态 | 来源 |
+|----|------|------|------|
+| S21-1 | 主动学习策略 | ✅ done | Sprint-S21 |
+| S21-2 | 知识蒸馏 | ✅ done | Sprint-S21 |
+| S21-3 | 少样本学习 | ✅ done | Sprint-S21 |
+| S21-4 | 持续学习 | ✅ done | Sprint-S21 |
+
+---
+
+## Sprint-S22: 数字生命体自治框架
+
+### P1 - 核心功能
+
+| ID | 需求 | 状态 | 来源 |
+|----|------|------|------|
+| S22-1 | 自治循环机制 | ✅ done | Sprint-S22 |
+| S22-2 | 目标驱动行为 | ✅ done | Sprint-S22 |
+| S22-3 | 自我监控 | ✅ done | Sprint-S22 |
+| S22-4 | 自主决策边界 | ✅ done | Sprint-S22 |
+
+---
+
+## Sprint-S23: 多模态交互系统
+
+### P1 - 核心功能
+
+| ID | 需求 | 状态 | 来源 |
+|----|------|------|------|
+| S23-1 | 语音识别与合成 | todo | Sprint-S23 |
+| S23-2 | 图像理解 | todo | Sprint-S23 |
+| S23-3 | 多模态融合 | todo | Sprint-S23 |
+| S23-4 | 语音情感分析 | todo | Sprint-S23 |
+
+### P2 - 优化功能
+
+| ID | 需求 | 状态 | 来源 |
+|----|------|------|------|
+| S23-5 | 实时语音流处理 | todo | Sprint-S23 |
+| S23-6 | 图像缓存 | todo | Sprint-S23 |
+
+---
+
+## Sprint-S24: 性能优化
+
+### P1 - 核心功能
+
+| ID | 需求 | 状态 | 来源 |
+|----|------|------|------|
+| S24-1 | 认知周期性能分析 | todo | Sprint-S24 |
+| S24-2 | 记忆检索缓存优化 | todo | Sprint-S24 |
+| S24-3 | 并行处理优化 | todo | Sprint-S24 |
+| S24-4 | 内存使用优化 | todo | Sprint-S24 |
+
+### P2 - 优化功能
+
+| ID | 需求 | 状态 | 来源 |
+|----|------|------|------|
+| S24-5 | 连接池优化 | todo | Sprint-S24 |
+| S24-6 | 批量处理 | todo | Sprint-S24 |
+
+---
+
+## Sprint-S25: 安全加固
+
+### P1 - 核心功能
+
+| ID | 需求 | 状态 | 来源 |
+|----|------|------|------|
+| S25-1 | API认证与授权 | todo | Sprint-S25 |
+| S25-2 | Webhook签名验证 | todo | Sprint-S25 |
+| S25-3 | 敏感数据加密 | todo | Sprint-S25 |
+| S25-4 | 输入校验增强 | todo | Sprint-S25 |
+
+### P2 - 优化功能
+
+| ID | 需求 | 状态 | 来源 |
+|----|------|------|------|
+| S25-5 | 安全审计日志 | todo | Sprint-S25 |
+| S25-6 | 密钥轮换 | todo | Sprint-S25 |
+
+---
+
+## Sprint-S26: 部署自动化
+
+### P2 - 能力扩展
+
+| ID | 需求 | 状态 | 来源 |
+|----|------|------|------|
+| S26-1 | Docker容器化 | todo | Sprint-S26 |
+| S26-2 | CI/CD流水线 | todo | Sprint-S26 |
+| S26-3 | 一键部署脚本 | todo | Sprint-S26 |
+| S26-4 | 蓝绿部署支持 | todo | Sprint-S26 |
+
+---
+
+## Sprint-S27: 监控告警增强
+
+### P2 - 能力扩展
+
+| ID | 需求 | 状态 | 来源 |
+|----|------|------|------|
+| S27-1 | Prometheus指标导出 | todo | Sprint-S27 |
+| S27-2 | Grafana仪表盘 | todo | Sprint-S27 |
+| S27-3 | 告警规则配置 | todo | Sprint-S27 |
+| S27-4 | 日志聚合 | todo | Sprint-S27 |
+
+---
+
+## Sprint-S28: 长期记忆归档
+
+### P2 - 能力扩展
+
+| ID | 需求 | 状态 | 来源 |
+|----|------|------|------|
+| S28-1 | 记忆分层存储策略 | todo | Sprint-S28 |
+| S28-2 | 记忆归档与检索 | todo | Sprint-S28 |
+| S28-3 | 遗忘曲线优化 | todo | Sprint-S28 |
+| S28-4 | 存储压缩 | todo | Sprint-S28 |
+
+---
+
+## Sprint-S29: 情感生成与表达
+
+### P2 - 能力扩展
+
+| ID | 需求 | 状态 | 来源 |
+|----|------|------|------|
+| S29-1 | 情感状态机 | todo | Sprint-S29 |
+| S29-2 | 情感驱动的动作生成 | todo | Sprint-S29 |
+| S29-3 | 表情与语音同步 | todo | Sprint-S29 |
+| S29-4 | 共情响应 | todo | Sprint-S29 |
+
+---
+
+## Sprint-S30: 测试覆盖率提升
+
+### P2 - 能力扩展
+
+| ID | 需求 | 状态 | 来源 |
+|----|------|------|------|
+| S30-1 | 核心服务单元测试 | todo | Sprint-S30 |
+| S30-2 | 集成测试 | todo | Sprint-S30 |
+| S30-3 | API端到端测试 | todo | Sprint-S30 |
+| S30-4 | 性能基准测试 | todo | Sprint-S30 |
+
+---
+
+## Sprint-S31: 跨Sprite协作
+
+### P3 - 探索性功能
+
+| ID | 需求 | 状态 | 来源 |
+|----|------|------|------|
+| S31-1 | Sprite发现协议 | todo | Sprint-S31 |
+| S31-2 | 任务分发与协调 | todo | Sprint-S31 |
+| S31-3 | 知识共享机制 | todo | Sprint-S31 |
+| S31-4 | 协作安全 | todo | Sprint-S31 |
+
+---
+
+## Sprint-S32: 开放API生态
+
+### P3 - 探索性功能
+
+| ID | 需求 | 状态 | 来源 |
+|----|------|------|------|
+| S32-1 | 开放API文档 | todo | Sprint-S32 |
+| S32-2 | 插件系统 | todo | Sprint-S32 |
+| S32-3 | Webhook市场 | todo | Sprint-S32 |
+| S32-4 | 第三方集成 | todo | Sprint-S32 |
+
+---
+
+## Sprint-S33: 架构重构
+
+### P0 - 阻断性问题
+
+| ID | 需求 | 状态 | 来源 |
+|----|------|------|------|
+| S33-1 | EvolutionEngine 拆分 | todo | Sprint-S33 |
+| S33-2 | DecisionEngine 评估拆分 | todo | Sprint-S33 |
+
+### P1 - 核心功能
+
+| ID | 需求 | 状态 | 来源 |
+|----|------|------|------|
+| S33-3 | 未整合服务梳理与整合 | todo | Sprint-S33 |
+| S33-4 | 向量检索真实 embedding 实现 | todo | Sprint-S33 |
+| S33-5 | 多设备协同网络传输实现 | todo | Sprint-S33 |
+
+### S33 任务详情
+
+#### S33-1: EvolutionEngine 拆分
+
+**所属阶段**: S33 - 架构重构
+**优先级**: P0
+**状态**: todo
+
+**背景/目标**: EvolutionEngine.java ~119KB，疑似 God Class，需要拆分为专注类
+
+**实现内容**:
+1. 拆分 FeedbackCollector - 反馈收集逻辑
+2. 拆分 LearningLoop - 学习循环逻辑
+3. 拆分 SelfModifier - 自我修改逻辑
+4. 拆分 SafetyBoundsValidator - 安全边界验证
+
+**依赖**: 无
+**验收标准**: EvolutionEngine 拆分后每个类 < 30KB，职责单一
+
+**涉及文件**:
+- `EvolutionEngine.java` (拆分)
+
+---
+
+#### S33-2: DecisionEngine 评估拆分
+
+**所属阶段**: S33 - 架构重构
+**优先级**: P0
+**状态**: todo
+
+**背景/目标**: DecisionEngine ~42KB 需要评估是否需要拆分
+
+**实现内容**:
+1. 分析 DecisionEngine 职责
+2. 如需要，拆分为专注类
+3. 确保拆分后功能完整
+
+**依赖**: 无
+**验收标准**: DecisionEngine 职责清晰，无 God Class 迹象
+
+**涉及文件**:
+- `DecisionEngine.java`
+
+---
+
+#### S33-3: 未整合服务梳理与整合
+
+**所属阶段**: S33 - 架构重构
+**优先级**: P1
+**状态**: todo
+
+**背景/目标**: 40+ 新增 Service 文件（如 EmotionDrivenActionGenerator、ForgettingCurveOptimizer 等）与核心架构缺乏整合
+
+**实现内容**:
+1. 梳理所有未整合的服务
+2. 评估每个服务与核心架构的关系
+3. 整合或标记为废弃
+
+**依赖**: S33-1, S33-2
+**验收标准**: 所有服务都有明确的架构定位
+
+**涉及文件**:
+- `src/main/java/com/lingfeng/sprite/service/`
+
+---
+
+#### S33-4: 向量检索真实 embedding 实现
+
+**所属阶段**: S33 - 架构重构
+**优先级**: P1
+**状态**: todo
+
+**背景/目标**: S20 向量检索使用简单 hash 替代真实 embedding，与设计不符
+
+**实现内容**:
+1. 集成 embedding 模型（如 sentence-transformers）
+2. 重写 MemoryRetrievalService 向量检索逻辑
+3. 保持 API 兼容性
+
+**依赖**: 无
+**验收标准**: 向量检索使用真实 embedding 模型
+
+**涉及文件**:
+- `MemoryRetrievalService.java`
+
+---
+
+#### S33-5: 多设备协同网络传输实现
+
+**所属阶段**: S33 - 架构重构
+**优先级**: P1
+**状态**: todo
+
+**背景/目标**: MultiDeviceCoordinationService 只有内存状态，无实际网络传输
+
+**实现内容**:
+1. 实现设备间 WebSocket 通信
+2. 或实现 HTTP 长轮询机制
+3. 实现设备注册与发现
+
+**依赖**: 无
+**验收标准**: 设备间可跨网络通信
+
+**涉及文件**:
+- `MultiDeviceCoordinationService.java`
+
+---
+
+## Sprint-S34: 技术债清理
+
+### P2 - 优化功能
+
+| ID | 需求 | 状态 | 来源 |
+|----|------|------|------|
+| S34-1 | RealUserSensor Linux 支持完善 | todo | Sprint-S34 |
+| S34-2 | GitHub 备份真实 API 实现 | todo | Sprint-S34 |
+| S34-3 | 传感器健康监控完善 | todo | Sprint-S34 |
+
+### S34 任务详情
+
+#### S34-1: RealUserSensor Linux 支持完善
+
+**所属阶段**: S34 - 技术债清理
+**优先级**: P2
+**状态**: todo
+
+**背景/目标**: RealUserSensor JNA 仅支持 Windows，Linux 返回 UNKNOWN
+
+**实现内容**:
+1. 完善 Linux 平台窗口跟踪实现
+2. 验证 Linux 环境下的功能
+
+**依赖**: 无
+**验收标准**: Linux 环境下能正确获取活动窗口和空闲状态
+
+**涉及文件**:
+- `RealUserSensor.java`
+
+---
+
+#### S34-2: GitHub 备份真实 API 实现
+
+**所属阶段**: S34 - 技术债清理
+**优先级**: P2
+**状态**: todo
+
+**背景/目标**: 文档提到 GitHub 备份但未实现真实 API 同步
+
+**实现内容**:
+1. 实现 GitHub API 集成
+2. 实现增量备份
+3. 实现备份恢复
+
+**依赖**: 无
+**验收标准**: 记忆数据可备份到 GitHub 并恢复
+
+**涉及文件**:
+- `GitHubBackupService.java`
+
+---
+
+#### S34-3: 传感器健康监控完善
+
+**所属阶段**: S34 - 技术债清理
+**优先级**: P2
+**状态**: todo
+
+**背景/目标**: 传感器健康监控需要完善告警机制
+
+**实现内容**:
+1. 完善传感器超时检测
+2. 实现传感器告警通知
+3. 添加传感器自恢复逻辑
+
+**依赖**: 无
+**验收标准**: 传感器无响应时可触发告警
+
+**涉及文件**:
+- `HealthMonitorService.java`
+
+---
+
 ## Sprint-S12: Dashboard数据连接
 
 ### P1 - 核心功能

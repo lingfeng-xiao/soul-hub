@@ -365,10 +365,10 @@ public class EmotionHistoryService {
                 List<EmotionRecord> records = hourEntry.getValue();
 
                 // 计算该时间窗口的情绪分数
-                float avgSentiment = records.stream()
-                        .mapToFloat(EmotionRecord::sentimentScore)
+                float avgSentiment = (float) records.stream()
+                        .mapToDouble(EmotionRecord::sentimentScore)
                         .average()
-                        .orElse(0.5f);
+                        .orElse(0.5);
 
                 // 计算积极情绪占比
                 long positiveCount = records.stream()
@@ -451,10 +451,10 @@ public class EmotionHistoryService {
                 // 没有积极数据，可能是联系效果不好的日期
                 avoidDays.add(day);
             } else {
-                float avgScore = dayWindows.stream()
-                        .mapToFloat(OptimalContactWindow::score)
+                float avgScore = (float) dayWindows.stream()
+                        .mapToDouble(OptimalContactWindow::score)
                         .average()
-                        .orElse(0f);
+                        .orElse(0);
                 dayScores.put(day, avgScore);
             }
         }
@@ -584,10 +584,10 @@ public class EmotionHistoryService {
             LocalDate date = today.minusDays(i);
             List<EmotionRecord> dayRecords = emotionHistoryByDate.get(date);
             if (dayRecords != null && !dayRecords.isEmpty()) {
-                float avgScore = dayRecords.stream()
-                        .mapToFloat(EmotionRecord::sentimentScore)
+                float avgScore = (float) dayRecords.stream()
+                        .mapToDouble(EmotionRecord::sentimentScore)
                         .average()
-                        .orElse(0.5f);
+                        .orElse(0.5);
                 dailyScores.put(date, avgScore);
             }
         }
@@ -602,14 +602,14 @@ public class EmotionHistoryService {
 
         // 比较前半部分和后半部分的平均分
         int mid = sorted.size() / 2;
-        float firstHalfAvg = sorted.subList(0, mid).stream()
-                .mapToDouble(Map.Entry::getValue)
+        float firstHalfAvg = (float) sorted.subList(0, mid).stream()
+                .mapToDouble(e -> e.getValue())
                 .average()
-                .orElse(0.5f);
-        float secondHalfAvg = sorted.subList(mid, sorted.size()).stream()
-                .mapToDouble(Map.Entry::getValue)
+                .orElse(0.5);
+        float secondHalfAvg = (float) sorted.subList(mid, sorted.size()).stream()
+                .mapToDouble(e -> e.getValue())
                 .average()
-                .orElse(0.5f);
+                .orElse(0.5);
 
         float changeRate = secondHalfAvg - firstHalfAvg;
 

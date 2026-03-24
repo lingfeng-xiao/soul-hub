@@ -103,7 +103,11 @@ public class SpriteService {
             selfModel.metacognition(),
             selfModel.growthHistory(),
             selfModel.evolutionLevel(),
-            selfModel.evolutionCount()
+            selfModel.evolutionCount(),
+            selfModel.learnedSkills(),
+            selfModel.selfGoals(),
+            selfModel.learningMetrics(),
+            selfModel.autonomousState()
         );
 
         // 创建世界模型（使用配置的owner信息）
@@ -177,7 +181,7 @@ public class SpriteService {
         Sprite.State currentState = sprite.getState();
         multiDeviceCoordinationService.broadcast(
             MultiDeviceCoordinationService.MessageType.STATE_SYNC,
-            "state:" + currentState.name() + ",mood:" + (currentState.mood() != null ? currentState.mood().name() : "neutral")
+            "state:" + currentState.identity().identity().displayName() + ",running:" + currentState.isRunning()
         );
 
         // 执行认知闭环
@@ -249,12 +253,13 @@ public class SpriteService {
         logger.debug("Cognition cycle completed");
 
         // S13-1: 触发决策事件
-        if (result.decisionResult() != null) {
+        if (result.decisionResult() != null && result.decisionResult().hasActions()) {
+            String actionName = result.decisionResult().actions().isEmpty() ? "none" :
+                result.decisionResult().actions().get(0).tool().name();
             webhookService.triggerEvent(WebhookService.EventType.DECISION_MADE,
                 Map.of(
                     "timestamp", Instant.now().toString(),
-                    "action", result.decisionResult().chosenAction() != null ?
-                        result.decisionResult().chosenAction().name() : "none"
+                    "action", actionName
                 ));
         }
 
@@ -486,7 +491,7 @@ public class SpriteService {
 
         // 注册到快速反应处理器
         if (quickReactionHandler != null) {
-            quickReactionHandler.registerAsyncAction(actionId, new QuickReactionHandler.SimpleFuture<>(actionId));
+            quickReactionHandler.registerAsyncAction(actionId, new QuickReactionHandler.SimpleFuture<>());
         }
 
         // 异步执行

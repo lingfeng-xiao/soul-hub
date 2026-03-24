@@ -90,7 +90,7 @@ public class EvolutionDashboardService {
     /**
      * 记录进化快照
      */
-    public void recordSnapshot(EvolutionEngine engine) {
+    public void recordSnapshot(EvolutionEngine.Engine engine) {
         try {
             EvolutionEngine.EvolutionStatus status = engine.getStatus();
 
@@ -124,7 +124,7 @@ public class EvolutionDashboardService {
      */
     public void recordSnapshot(EvolutionEngine.EvolutionHistoryVisualization visualization) {
         EvolutionSnapshot snapshot = new EvolutionSnapshot(
-            visualization.timestamp(),
+            visualization.timeline().startTime(),
             visualization.evolutionLevel(),
             visualization.totalEvolutions(),
             visualization.learningRates().globalLearningRate(),
@@ -146,7 +146,7 @@ public class EvolutionDashboardService {
     /**
      * 获取进化Dashboard数据
      */
-    public EvolutionDashboardData getDashboardData(EvolutionEngine engine) {
+    public EvolutionDashboardData getDashboardData(EvolutionEngine.Engine engine) {
         Instant now = Instant.now();
         Instant oneDayAgo = now.minus(24, ChronoUnit.HOURS);
 

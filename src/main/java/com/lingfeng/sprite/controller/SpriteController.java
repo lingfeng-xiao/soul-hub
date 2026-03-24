@@ -491,9 +491,8 @@ public class SpriteController {
     @GetMapping("/external/translate")
     public ResponseEntity<ExternalApiAdapterService.ApiResponse> translate(
             @RequestParam String text,
-            @RequestParam(defaultValue = "auto") String from,
             @RequestParam(defaultValue = "zh") String to) {
-        ExternalApiAdapterService.ApiResponse response = externalApiService.translate(text, from, to);
+        ExternalApiAdapterService.ApiResponse response = externalApiService.translate(text, to);
         return ResponseEntity.ok(response);
     }
 

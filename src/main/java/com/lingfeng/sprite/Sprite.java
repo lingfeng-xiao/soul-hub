@@ -160,7 +160,11 @@ public class Sprite {
             selfModel.metacognition(),
             selfModel.growthHistory(),
             selfModel.evolutionLevel(),
-            selfModel.evolutionCount()
+            selfModel.evolutionCount(),
+            List.of(),
+            List.of(),
+            LearningMetrics.empty(),
+            AutonomousState.createDefault()
         );
 
         // 创建世界模型
@@ -302,7 +306,11 @@ public class Sprite {
                 cognitionState.selfModel().metacognition(),
                 cognitionState.selfModel().growthHistory(),
                 cognitionState.selfModel().evolutionLevel(),
-                cognitionState.selfModel().evolutionCount()
+                cognitionState.selfModel().evolutionCount(),
+                List.of(),
+                List.of(),
+                LearningMetrics.empty(),
+                AutonomousState.createDefault()
             ),
             platform,
             cognitionState.worldModel(),

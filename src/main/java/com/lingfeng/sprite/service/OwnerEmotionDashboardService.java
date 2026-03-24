@@ -244,12 +244,12 @@ public class OwnerEmotionDashboardService {
         LocalDate today = Instant.now().atZone(timezone).toLocalDate();
 
         for (int hour = 0; hour < 24; hour++) {
-            LocalDate date = today.minusDays(1).plusHours(hour);
+            LocalDate date = today.minusDays(1);
             // 从daily stats获取该小时的平均情绪
             EmotionHistoryService.EmotionStats stats = emotionService.getStatsForDate(date);
             if (stats != null && stats.totalRecords() > 0) {
                 trend.add(new EmotionTrendPoint(
-                    date.atStartOfDay().toInstant(ZoneId.of("Asia/Shanghai").getRules().getOffset(date)),
+                    date.atStartOfDay().atZone(ZoneId.of("Asia/Shanghai")).toInstant(),
                     stats.avgIntensity(),
                     stats.mostCommonMood() != null ? getMoodName(stats.mostCommonMood()) : "unknown"
                 ));

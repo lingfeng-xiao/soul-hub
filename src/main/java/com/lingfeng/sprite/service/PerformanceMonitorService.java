@@ -135,20 +135,24 @@ public class PerformanceMonitorService {
         MemoryUsage nonHeapUsage = memoryBean.getNonHeapMemoryUsage();
 
         List<MemoryInfo.MemoryPoolInfo> pools = new ArrayList<>();
-        memoryBean.getMemoryPoolMXBeans().forEach(pool -> {
+        ManagementFactory.getMemoryPoolMXBeans().forEach(pool -> {
             MemoryUsage usage = pool.getUsage();
-            pools.add(new MemoryInfo.MemoryPoolInfo(
-                pool.getName(),
-                usage.getUsed(),
-                usage.getMax() >= 0 ? usage.getMax() : usage.getCommitted(),
-                usage.getUsagePercent()
-            ));
+            if (usage != null) {
+                long max = usage.getMax() >= 0 ? usage.getMax() : usage.getCommitted();
+                float usagePercent = max > 0 ? (float) usage.getUsed() / max * 100 : 0;
+                pools.add(new MemoryInfo.MemoryPoolInfo(
+                    pool.getName(),
+                    usage.getUsed(),
+                    max,
+                    usagePercent
+                ));
+            }
         });
 
         MemoryInfo memory = new MemoryInfo(
             heapUsage.getUsed(),
             heapUsage.getMax() >= 0 ? heapUsage.getMax() : heapUsage.getCommitted(),
-            heapUsage.getUsagePercent(),
+            heapUsage.getMax() > 0 ? (float) heapUsage.getUsed() / heapUsage.getMax() * 100 : 0,
             nonHeapUsage.getUsed(),
             nonHeapUsage.getMax() >= 0 ? nonHeapUsage.getMax() : nonHeapUsage.getCommitted(),
             pools
@@ -266,7 +270,7 @@ public class PerformanceMonitorService {
      * 增加计数器
      */
     public void incrementCounter(String name) {
-        recordValue(name, gauges.getOrDefault(name, new MetricGauge(name, "", MetricType.COUNTER, 0, 0, 0, Instant.now()).currentValue() + 1);
+        recordValue(name, gauges.getOrDefault(name, new MetricGauge(name, "", MetricType.COUNTER, 0, 0, 0, Instant.now())).currentValue() + 1);
     }
 
     /**

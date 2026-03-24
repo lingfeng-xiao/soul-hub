@@ -21,6 +21,7 @@ import com.lingfeng.sprite.PerceptionSystem;
 import com.lingfeng.sprite.PerceptionSystem.PresenceStatus;
 import com.lingfeng.sprite.PerceptionSystem.UserPerception;
 import com.lingfeng.sprite.WorldModel;
+import com.lingfeng.sprite.OwnerModel;
 import com.lingfeng.sprite.cognition.CognitionController;
 import com.lingfeng.sprite.llm.ChatModels;
 import com.lingfeng.sprite.llm.MinMaxLlmReasoner;

@@ -139,7 +139,7 @@ public class MultiDeviceCoordinationService {
         DeviceInfo device = new DeviceInfo(
             localDeviceId,
             deviceName != null ? deviceName : "Local Device",
-            DeviceType.PC,
+            DeviceType.DESKTOP,
             Instant.now(),
             DeviceState.ONLINE,
             ipAddress != null ? ipAddress : "",

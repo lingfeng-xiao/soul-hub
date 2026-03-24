@@ -421,13 +421,13 @@ public class MemoryVisualizationService {
             return new MemoryTimeline(effectiveStart, effectiveEnd, List.of());
         }
 
-        List<TimelineEntry> entries = new ArrayList<>();
+        List<MemoryTimeline.TimelineEntry> entries = new ArrayList<>();
 
         // 从情景记忆获取时间线数据
         for (EpisodicEntry episodic : memory.getLongTerm().getAllEpisodic()) {
             if (episodic.timestamp().isAfter(effectiveStart) &&
                 episodic.timestamp().isBefore(effectiveEnd)) {
-                entries.add(new TimelineEntry(
+                entries.add(new MemoryTimeline.TimelineEntry(
                     episodic.timestamp(),
                     "EPISODIC",
                     episodic.experience(),
@@ -441,7 +441,7 @@ public class MemoryVisualizationService {
             if (procedural.lastPracticed() != null &&
                 procedural.lastPracticed().isAfter(effectiveStart) &&
                 procedural.lastPracticed().isBefore(effectiveEnd)) {
-                entries.add(new TimelineEntry(
+                entries.add(new MemoryTimeline.TimelineEntry(
                     procedural.lastPracticed(),
                     "PROCEDURAL",
                     procedural.skillName() + ": " + procedural.procedure(),

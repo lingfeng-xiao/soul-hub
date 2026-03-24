@@ -1,7 +1,9 @@
 package com.lingfeng.sprite;
 
 import com.lingfeng.sprite.OwnerModel;
+import com.lingfeng.sprite.SelfModel;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -352,6 +354,8 @@ public final class EvolutionEngine {
      * 学习循环
      */
     public static class LearningLoop {
+        private static final Logger logger = LoggerFactory.getLogger(LearningLoop.class);
+
         private final List<Observation> observations = new ArrayList<>();
         private final List<Insight> insights = new ArrayList<>();
         private final List<Principle> principles = new ArrayList<>();
@@ -1139,7 +1143,11 @@ public final class EvolutionEngine {
                 self.metacognition(),
                 self.growthHistory(),
                 self.evolutionLevel(),
-                self.evolutionCount() + 1
+                self.evolutionCount() + 1,
+                List.of(),
+                List.of(),
+                SelfModel.LearningMetrics.empty(),
+                SelfModel.AutonomousState.createDefault()
             );
             recordModification(new Modification(
                 Instant.now(),
@@ -1189,7 +1197,11 @@ public final class EvolutionEngine {
                 self.metacognition(),
                 self.growthHistory(),
                 self.evolutionLevel(),
-                self.evolutionCount() + 1
+                self.evolutionCount() + 1,
+                List.of(),
+                List.of(),
+                SelfModel.LearningMetrics.empty(),
+                SelfModel.AutonomousState.createDefault()
             );
             recordModification(new Modification(
                 Instant.now(),
@@ -1252,7 +1264,11 @@ public final class EvolutionEngine {
                 self.metacognition(),
                 self.growthHistory(),
                 self.evolutionLevel(),
-                self.evolutionCount() + 1
+                self.evolutionCount() + 1,
+                List.of(),
+                List.of(),
+                SelfModel.LearningMetrics.empty(),
+                SelfModel.AutonomousState.createDefault()
             );
             recordModification(new Modification(
                 Instant.now(),
@@ -2032,11 +2048,11 @@ public final class EvolutionEngine {
 
         @Override
         public TimelineData generateTimeline(Engine engine) {
-            List<TimelineEvent> events = new ArrayList<>();
+            List<TimelineData.TimelineEvent> events = new ArrayList<>();
 
             // 添加洞察事件
             for (Insight insight : engine.learningLoop.insights) {
-                events.add(new TimelineEvent(
+                events.add(new TimelineData.TimelineEvent(
                     insight.timestamp(),
                     "INSIGHT",
                     insight.type().name(),
@@ -2047,7 +2063,7 @@ public final class EvolutionEngine {
 
             // 添加行为改变事件
             for (BehaviorChange change : engine.learningLoop.behaviorChanges) {
-                events.add(new TimelineEvent(
+                events.add(new TimelineData.TimelineEvent(
                     change.timestamp(),
                     "BEHAVIOR_CHANGE",
                     change.afterBehavior().substring(0, Math.min(30, change.afterBehavior().length())),
@@ -2058,7 +2074,7 @@ public final class EvolutionEngine {
 
             // 添加修改事件
             for (SelfModifier.Modification mod : engine.selfModifier.getHistory()) {
-                events.add(new TimelineEvent(
+                events.add(new TimelineData.TimelineEvent(
                     mod.timestamp(),
                     "MODIFICATION",
                     mod.type().name() + ": " + mod.target(),
@@ -2103,12 +2119,12 @@ public final class EvolutionEngine {
             List<Insight> recent = insights.size() > 5 ?
                 insights.subList(insights.size() - 5, insights.size()) : insights;
 
-            InsightAnalysis.TrendDirection trendDir = InsightAnalysis.TrendDirection.STABLE;
+            InsightAnalysis.ConfidenceTrend.TrendDirection trendDir = InsightAnalysis.ConfidenceTrend.TrendDirection.STABLE;
             if (recent.size() >= 2) {
                 float older = recent.get(0).confidence();
                 float newer = recent.get(recent.size() - 1).confidence();
-                if (newer > older * 1.1f) trendDir = InsightAnalysis.TrendDirection.IMPROVING;
-                else if (newer < older * 0.9f) trendDir = InsightAnalysis.TrendDirection.DECLINING;
+                if (newer > older * 1.1f) trendDir = InsightAnalysis.ConfidenceTrend.TrendDirection.IMPROVING;
+                else if (newer < older * 0.9f) trendDir = InsightAnalysis.ConfidenceTrend.TrendDirection.DECLINING;
             }
 
             return new InsightAnalysis(
@@ -2868,7 +2884,7 @@ public final class EvolutionEngine {
          */
         public float computeGlobalRate(float overallSuccessRate, int totalSamples, List<LearningRateConfig> capabilityConfigs) {
             // 计算所有能力的平均学习速率
-            float avgCapabilityRate = capabilityConfigs.stream()
+            float avgCapabilityRate = (float) capabilityConfigs.stream()
                 .mapToDouble(LearningRateConfig::currentRate)
                 .average()
                 .orElse(DEFAULT_RATE);

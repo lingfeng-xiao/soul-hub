@@ -183,9 +183,12 @@ public class InteractionPreferenceLearningService {
      */
     public int getPreferredMessageLength() {
         switch (cachedPreferences.inferredVerbosity()) {
-            case BRIEF -> 20;      // 20字以内
-            case DETAILED -> 100;  // 可以详细到100字
-            default -> 50;         // 默认50字
+            case BRIEF:
+                return 20;      // 20字以内
+            case DETAILED:
+                return 100;     // 可以详细到100字
+            default:
+                return 50;      // 默认50字
         }
     }
 

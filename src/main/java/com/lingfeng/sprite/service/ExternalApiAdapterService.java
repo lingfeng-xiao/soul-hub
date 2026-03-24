@@ -195,7 +195,7 @@ public class ExternalApiAdapterService {
                 .GET()
                 .build();
 
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             long responseTime = System.currentTimeMillis() - startTime;
 
             boolean success = response.statusCode() >= 200 && response.statusCode() < 300;
