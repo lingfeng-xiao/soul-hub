@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 /**
  * S10-1: 认知Dashboard服务
@@ -16,6 +17,7 @@ import org.slf4j.LoggerFactory;
  * - 决策过程追踪
  * - 记忆检索统计
  */
+@Service
 public class CognitionDashboardService {
 
     private static final Logger logger = LoggerFactory.getLogger(CognitionDashboardService.class);
