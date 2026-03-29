@@ -57,3 +57,36 @@ create table if not exists life_runtime_state (
     goals_json text not null,
     updated_at timestamp not null
 );
+
+create table if not exists action_executions (
+    id varchar(36) primary key,
+    task_id varchar(255) not null,
+    execution_id varchar(255) not null,
+    status varchar(64) not null,
+    action_type varchar(255),
+    target varchar(255),
+    parameters text,
+    request_payload text,
+    response_payload text,
+    error_message text,
+    retry_count integer,
+    idempotency_key varchar(255),
+    cycle_id varchar(255),
+    plan_id varchar(255),
+    created_at timestamp null,
+    started_at timestamp null,
+    finished_at timestamp null,
+    updated_at timestamp null
+);
+
+create index idx_action_task_id
+    on action_executions (task_id);
+
+create index idx_action_status
+    on action_executions (status);
+
+create index idx_action_idempotency_key
+    on action_executions (idempotency_key);
+
+create index idx_action_cycle_id
+    on action_executions (cycle_id);
