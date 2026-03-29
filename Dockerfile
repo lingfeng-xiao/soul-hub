@@ -1,13 +1,13 @@
 # =============================================================================
 # Sprite Digital Being - Docker Containerization
-# Multi-stage build for Java 21 Spring Boot application
+# Multi-stage build for Java 17 Spring Boot application
 # Supports: AMD64 (x86_64), ARM64 (aarch64)
 # =============================================================================
 
 # -----------------------------------------------------------------------------
 # Build Stage
 # -----------------------------------------------------------------------------
-FROM maven:3.9-eclipse-temurin-21 AS builder
+FROM maven:3.9-eclipse-temurin-17 AS builder
 
 # Set working directory
 WORKDIR /build
@@ -27,7 +27,7 @@ RUN mvn package -DskipTests
 # -----------------------------------------------------------------------------
 # Runtime Stage
 # -----------------------------------------------------------------------------
-FROM eclipse-temurin:21-jre AS runtime
+FROM eclipse-temurin:17-jre AS runtime
 
 # Labels for container metadata
 LABEL org.opencontainers.image.title="Sprite Digital Being"
@@ -65,4 +65,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:8080/actuator/health || exit 1
 
 # Entry point with production profile
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar -Dspring.profiles.active=prod app.jar"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Dspring.profiles.active=prod -jar app.jar"]

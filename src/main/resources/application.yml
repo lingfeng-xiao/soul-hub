@@ -1,6 +1,8 @@
 spring:
   application:
     name: sprite
+  profiles:
+    default: local
 
 server:
   port: 8080
@@ -23,15 +25,33 @@ sprite:
     interval-ms: 600000
     min-feedback-for-evolution: 3
   llm:
-    enabled: false
+    enabled: ${SPRITE_LLM_ENABLED:true}
     minmax:
       api-key: ${MINMAX_API_KEY:default-key}
-      base-url: https://api.minimax.chat
+      base-url: ${MINMAX_BASE_URL:https://api.minimax.chat}
   owner:
-    name: 灵锋
-    occupation: 软件工程师
-    workplace: 办公室
-    home: 家里
+    name: ${SPRITE_OWNER_NAME:owner}
+    occupation: ${SPRITE_OWNER_OCCUPATION:builder}
+    workplace: ${SPRITE_OWNER_WORKPLACE:workspace}
+    home: ${SPRITE_OWNER_HOME:home}
+  agent:
+    enabled: true
+    leader:
+      id: sprite-leader
+      workspace: ~/.sprites
+    workers:
+      perception:
+        count: 1
+        enabled: true
+      cognition:
+        count: 1
+        enabled: true
+      action:
+        count: 2
+        enabled: true
+    mailbox:
+      base-path: ~/.sprites
+      poll-interval-ms: 100
 
 logging:
   level:
