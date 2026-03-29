@@ -16,7 +16,7 @@ services:
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
       - SPRING_FLYWAY_ENABLED=true
       - SPRING_SQL_INIT_MODE=never
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - MINMAX_API_KEY=${MINMAX_API_KEY:-}
       - SPRITE_LLM_ENABLED=${SPRITE_LLM_ENABLED:-true}
       - SPRITE_OWNER_NAME=${OWNER_NAME:-owner}
