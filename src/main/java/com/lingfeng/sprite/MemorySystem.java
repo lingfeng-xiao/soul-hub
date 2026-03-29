@@ -452,6 +452,23 @@ public final class MemorySystem {
     }
 
     /**
+     * 记忆统计数据
+     */
+    public static final class MemoryStats {
+        public final int episodicCount;
+        public final int semanticCount;
+        public final int proceduralCount;
+        public final int perceptiveCount;
+
+        public MemoryStats(int episodicCount, int semanticCount, int proceduralCount, int perceptiveCount) {
+            this.episodicCount = episodicCount;
+            this.semanticCount = semanticCount;
+            this.proceduralCount = proceduralCount;
+            this.perceptiveCount = perceptiveCount;
+        }
+    }
+
+    /**
      * 长期记忆
      */
     public static class LongTermMemory {
@@ -597,6 +614,73 @@ public final class MemorySystem {
         }
 
         /**
+         * 获取记忆总项数
+         */
+        public int size() {
+            return episodic.size() + semantic.size() + procedural.size() + perceptive.size();
+        }
+
+        /**
+         * 存储记忆项（根据类型分发）
+         */
+        public void store(WorkingMemoryItem item, StoreType type) {
+            switch (type) {
+                case EPISODIC -> {
+                    String emotion = null;
+                    if (item.source() != null && item.source().metadata() != null && item.source().metadata().containsKey("emotion")) {
+                        Object e = item.source().metadata().get("emotion");
+                        if (e instanceof String) emotion = (String) e;
+                    }
+                    storeEpisodic(new EpisodicEntry(
+                        item.id(),
+                        item.source() != null ? item.source().timestamp() : Instant.now(),
+                        null,
+                        List.of(),
+                        item.abstraction(),
+                        emotion,
+                        null,
+                        null
+                    ));
+                }
+                case SEMANTIC -> storeSemantic(new SemanticEntry(item.id(), item.abstraction(), item.content().toString()));
+                case PROCEDURAL -> storeProcedural(new ProceduralEntry(item.id(), item.abstraction(), item.content().toString()));
+                case PERCEPTIVE -> {
+                    if (item.source() != null) {
+                        storePerceptive(new PerceptiveEntry(item.id(), item.source().type().name(), item.abstraction(), item.source().source()));
+                    }
+                }
+            }
+        }
+
+        /**
+         * 检索所有类型记忆
+         */
+        public List<WorkingMemoryItem> retrieve(String query, int limit) {
+            List<WorkingMemoryItem> results = new ArrayList<>();
+
+            // 检索情景记忆
+            for (EpisodicEntry e : recallEpisodic(query, limit)) {
+                Stimulus source = new Stimulus(e.id(), StimulusType.TEXT, e.experience(), "longTerm", e.timestamp());
+                results.add(new WorkingMemoryItem(e.id(), e.experience(), e.lesson() != null ? e.lesson() : e.emotion() != null ? e.emotion() : "", source));
+            }
+
+            // 检索语义记忆
+            for (SemanticEntry e : recallSemantic(query)) {
+                Stimulus source = new Stimulus(e.id(), StimulusType.TEXT, e.definition(), "longTerm", Instant.now());
+                results.add(new WorkingMemoryItem(e.id(), e.definition(), e.concept(), source));
+            }
+
+            // 检索程序记忆
+            ProceduralEntry proc = recallProcedural(query);
+            if (proc != null) {
+                Stimulus source = new Stimulus(proc.id(), StimulusType.TEXT, proc.procedure(), "longTerm", Instant.now());
+                results.add(new WorkingMemoryItem(proc.id(), proc.procedure(), proc.skillName(), source));
+            }
+
+            return results.stream().limit(limit).toList();
+        }
+
+        /**
          * 清理过期记忆
          */
         public void pruneOldEntries(long retentionDays) {
@@ -730,13 +814,6 @@ public final class MemorySystem {
         }
 
         /**
-         * 获取所有记忆类型的统计数据（用于可视化）
-         */
-        public MemoryStats getStats() {
-            return new MemoryStats(episodic.size(), semantic.size(), procedural.size(), perceptive.size());
-        }
-
-        /**
          * 持久化情景记忆包装器
          */
         public record PersistedEpisodicList(List<EpisodicEntry> entries) {}
@@ -753,13 +830,6 @@ public final class MemorySystem {
 
         private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(LongTermMemory.class);
     }
-
-    public record MemoryStats(
-        int episodicCount,
-        int semanticCount,
-        int proceduralCount,
-        int perceptiveCount
-    ) {}
 
     // ==================== 完整记忆系统 ====================
 

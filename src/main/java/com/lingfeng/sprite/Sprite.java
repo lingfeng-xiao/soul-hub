@@ -9,6 +9,8 @@ import com.lingfeng.sprite.sensor.RealPlatformSensor;
 import com.lingfeng.sprite.sensor.RealUserSensor;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -163,8 +165,8 @@ public class Sprite {
             selfModel.evolutionCount(),
             List.of(),
             List.of(),
-            LearningMetrics.empty(),
-            AutonomousState.createDefault()
+            SelfModel.LearningMetrics.empty(),
+            SelfModel.AutonomousState.createDefault()
         );
 
         // 创建世界模型
@@ -309,8 +311,8 @@ public class Sprite {
                 cognitionState.selfModel().evolutionCount(),
                 List.of(),
                 List.of(),
-                LearningMetrics.empty(),
-                AutonomousState.createDefault()
+                SelfModel.LearningMetrics.empty(),
+                SelfModel.AutonomousState.createDefault()
             ),
             platform,
             cognitionState.worldModel(),

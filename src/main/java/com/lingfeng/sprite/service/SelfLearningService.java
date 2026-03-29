@@ -356,7 +356,7 @@ public class SelfLearningService {
             String outcome = interaction.outcome().toLowerCase();
 
             // 检测是否是成功完成的任务
-            if (containsSuccessMarkers(interaction) && interaction.type() == OwnerModel.InteractionType.TASK) {
+            if (containsSuccessMarkers(interaction)) {
                 return extractTaskSkill(interaction);
             }
 

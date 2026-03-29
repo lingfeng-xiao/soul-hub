@@ -290,7 +290,7 @@ public class MemoryArchiveService {
      * @param memoryId The ID of the memory to restore
      * @return The restored memory object, or null if not found
      */
-    public Memory restoreMemory(String memoryId) {
+    public Object restoreMemory(String memoryId) {
         MemoryItemMetadata metadata = itemMetadata.get(memoryId);
         if (metadata == null) {
             logger.warn("Cannot restore unknown memory: {}", memoryId);

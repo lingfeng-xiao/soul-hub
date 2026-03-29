@@ -7,6 +7,7 @@ import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.lingfeng.sprite.cognition.CognitionController;
@@ -52,8 +53,8 @@ public class SpriteService {
 
     public SpriteService(
             AppConfig appConfig,
-            MinMaxConfig minMaxConfig,
-            MinMaxLlmReasoner minMaxLlmReasoner,
+            @Autowired(required = false) MinMaxConfig minMaxConfig,
+            @Autowired(required = false) MinMaxLlmReasoner minMaxLlmReasoner,
             MemoryConsolidationService memoryConsolidationService,
             EvolutionService evolutionService,
             ActionExecutor actionExecutor,
@@ -255,7 +256,7 @@ public class SpriteService {
         // S13-1: 触发决策事件
         if (result.decisionResult() != null && result.decisionResult().hasActions()) {
             String actionName = result.decisionResult().actions().isEmpty() ? "none" :
-                result.decisionResult().actions().get(0).tool().name();
+                result.decisionResult().actions().get(0).tool();
             webhookService.triggerEvent(WebhookService.EventType.DECISION_MADE,
                 Map.of(
                     "timestamp", Instant.now().toString(),

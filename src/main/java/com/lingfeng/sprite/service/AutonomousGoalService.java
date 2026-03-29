@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 /**
@@ -108,6 +109,33 @@ public class AutonomousGoalService {
 
     public AutonomousGoalService() {
         logger.info("AutonomousGoalService initialized");
+    }
+
+    /**
+     * S22-2: 定期生成自主目标
+     *
+     * 每5分钟评估当前状态并生成新的目标
+     */
+    @Scheduled(fixedRate = 300000) // 5分钟
+    public void generatePeriodicGoals() {
+        logger.debug("Running periodic goal generation");
+
+        // 检查是否已有活跃目标，避免生成过多目标
+        List<Goal> activeGoals = getActiveGoals();
+        if (activeGoals.size() >= maxActiveGoals) {
+            logger.debug("Already have {} active goals, skipping goal generation", activeGoals.size());
+            return;
+        }
+
+        // 生成一个通用的自主目标示例（实际实现可以根据上下文生成更有意义的目标）
+        Goal newGoal = createGoal(
+            "探索自我提升机会",
+            GoalPriority.MEDIUM,
+            List.of("评估当前技能", "识别学习机会", "制定提升计划"),
+            "self_improvement"
+        );
+
+        logger.info("Generated periodic goal: id={}, description={}", newGoal.id(), newGoal.description());
     }
 
     /**

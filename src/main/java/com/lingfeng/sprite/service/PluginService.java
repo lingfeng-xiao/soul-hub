@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import com.lingfeng.sprite.action.ActionExecutor;
 import com.lingfeng.sprite.action.ActionResult;
 
 /**
@@ -762,6 +761,8 @@ public class PluginService {
         try {
             // 在超时内执行
             return executeWithTimeout(task, SANDBOX_TIMEOUT_MS);
+        } catch (Exception e) {
+            throw new RuntimeException("Sandbox execution failed: " + e.getMessage(), e);
         } finally {
             // 移除安全管理器
             System.setSecurityManager(null);
@@ -771,7 +772,7 @@ public class PluginService {
     /**
      * 带超时的执行
      */
-    private <T> T executeWithTimeout(SandboxTask<T> task, long timeoutMs) {
+    private <T> T executeWithTimeout(SandboxTask<T> task, long timeoutMs) throws Exception {
         return executorService.submit(() -> task.execute()).get(timeoutMs, TimeUnit.MILLISECONDS);
     }
 

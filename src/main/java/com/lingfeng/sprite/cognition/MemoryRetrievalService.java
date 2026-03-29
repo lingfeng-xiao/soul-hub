@@ -58,6 +58,15 @@ public class MemoryRetrievalService {
         }
     }
 
+    // S20-4: 召回记忆结构 (用于 ReasoningFrame 和 DecisionRationale)
+    public record RecalledMemory(
+        String memoryId,         // 记忆ID
+        String memoryType,       // 记忆类型: EPISODIC, SEMANTIC, PROCEDURAL, PERCEPTIVE
+        String content,          // 记忆内容摘要
+        float relevanceScore,    // 相关性评分
+        Instant recalledAt       // 召回时间
+    ) {}
+
     public MemoryRetrievalService(MemorySystem.Memory memory) {
         this.memory = memory;
         this.vectorStore = new VectorStore();
@@ -326,11 +335,11 @@ public class MemoryRetrievalService {
         List<MemoryRecommendation> results = new ArrayList<>();
 
         if (memory != null && memory.getLongTerm() != null) {
-            List<EpisodicEntry> episodic = memory.getLongTerm().recallSemantic(location);
-            for (EpisodicEntry entry : episodic) {
+            List<SemanticEntry> semantic = memory.getLongTerm().recallSemantic(location);
+            for (SemanticEntry entry : semantic) {
                 results.add(new MemoryRecommendation(
                     entry.id(),
-                    entry.experience(),
+                    entry.concept(),
                     "位置相关",
                     0.7f
                 ));

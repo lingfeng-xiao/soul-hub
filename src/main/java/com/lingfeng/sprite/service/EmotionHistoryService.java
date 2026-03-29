@@ -8,7 +8,6 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.ConcurrentHashMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -310,10 +309,10 @@ public class EmotionHistoryService {
                         .orElse(Mood.NEUTRAL));
 
                 // 计算平均强度
-                float avgIntensity = intensitiesByDay.get(day).stream()
-                        .mapToFloat(Float::floatValue)
+                float avgIntensity = (float) intensitiesByDay.get(day).stream()
+                        .mapToDouble(Float::doubleValue)
                         .average()
-                        .orElse(0.5f);
+                        .orElse(0.5);
                 avgIntensities.put(day, avgIntensity);
             }
         }

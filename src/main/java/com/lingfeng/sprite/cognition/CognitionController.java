@@ -288,7 +288,7 @@ public class CognitionController {
             perceptionPipeline.getAverageSalience(),
             selfReflector.getReflectionCount(),
             worldModel.knowledgeGraph().facts().size(),
-            memStats.episodicCount() + memStats.semanticCount() + memStats.proceduralCount()
+            memStats.episodicCount + memStats.semanticCount + memStats.proceduralCount
         );
     }
 

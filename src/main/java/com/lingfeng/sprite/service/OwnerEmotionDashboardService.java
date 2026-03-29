@@ -13,6 +13,7 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import com.lingfeng.sprite.OwnerModel.Mood;
 
@@ -25,6 +26,7 @@ import com.lingfeng.sprite.OwnerModel.Mood;
  * - 周内模式分析
  * - 最优联系时间建议
  */
+@Service
 public class OwnerEmotionDashboardService {
 
     private static final Logger logger = LoggerFactory.getLogger(OwnerEmotionDashboardService.class);

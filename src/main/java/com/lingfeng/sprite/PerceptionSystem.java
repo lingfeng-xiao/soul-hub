@@ -191,6 +191,32 @@ public final class PerceptionSystem {
         public UserPerception() {
             this(null, PresenceStatus.UNKNOWN, List.of(), null, List.of());
         }
+
+        /**
+         * 获取当前活动（从活动窗口推断）
+         */
+        public String currentActivity() {
+            if (activeWindow != null && activeWindow.title() != null) {
+                return activeWindow.title();
+            }
+            return presence != null ? presence.name().toLowerCase() : "unknown";
+        }
+
+        /**
+         * 获取情绪状态（暂时从活动推断，后续可扩展为真实情绪识别）
+         */
+        public String mood() {
+            if (activeWindow != null && activeWindow.appType() != null) {
+                return switch (activeWindow.appType()) {
+                    case CHAT -> "happy";
+                    case MEDIA -> "relaxed";
+                    case DEVELOPMENT -> "focused";
+                    case PRODUCTIVITY -> "working";
+                    default -> "neutral";
+                };
+            }
+            return "neutral";
+        }
     }
 
     public record WindowInfo(

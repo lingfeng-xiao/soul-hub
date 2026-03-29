@@ -20,7 +20,9 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.slf4j.Logger;
@@ -73,7 +75,7 @@ public class ImageUnderstandingService {
         this.objectMapper = new ObjectMapper();
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(5);
-        cm.setMaxPerRoute(3);
+        cm.setMaxPerRoute(new HttpRoute(new HttpHost("localhost", 8080)), 3);
         this.httpClient = HttpClients.custom().setConnectionManager(cm).build();
         this.analysisCache = new ConcurrentHashMap<>();
         logger.info("ImageUnderstandingService initialized with MinMax API: {}", minMaxConfig.baseUrl());
@@ -91,10 +93,6 @@ public class ImageUnderstandingService {
     ) {
         public ImageAnalysisOptions {
             if (maxDescriptionLength <= 0) maxDescriptionLength = DEFAULT_MAX_DESCRIPTION_LENGTH;
-        }
-
-        public ImageAnalysisOptions {
-            // Default values
         }
 
         public static ImageAnalysisOptions defaultOptions() {

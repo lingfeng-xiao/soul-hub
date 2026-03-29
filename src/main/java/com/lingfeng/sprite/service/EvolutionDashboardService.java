@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import com.lingfeng.sprite.EvolutionEngine;
 
@@ -19,6 +20,7 @@ import com.lingfeng.sprite.EvolutionEngine;
  * - 行为改变追踪
  * - 学习速率历史
  */
+@Service
 public class EvolutionDashboardService {
 
     private static final Logger logger = LoggerFactory.getLogger(EvolutionDashboardService.class);

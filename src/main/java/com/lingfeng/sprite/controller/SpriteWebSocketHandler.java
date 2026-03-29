@@ -15,6 +15,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lingfeng.sprite.cognition.CognitionController;
 import com.lingfeng.sprite.service.SpriteService;
+import com.lingfeng.sprite.websocket.SpriteStatePusher;
 
 /**
  * Sprite WebSocket 处理器
@@ -23,13 +24,13 @@ import com.lingfeng.sprite.service.SpriteService;
  *
  * 消息格式 (发送):
  * {
- *   "type": "cycle" | "state" | "feedback",
+ *   "type": "cycle" | "state" | "feedback" | "subscribe" | "unsubscribe",
  *   "data": { ... }
  * }
  *
  * 消息格式 (接收):
  * {
- *   "type": "result" | "error" | "state",
+ *   "type": "result" | "error" | "state" | "state_update" | "cognition_update",
  *   "data": { ... }
  * }
  */
@@ -39,11 +40,13 @@ public class SpriteWebSocketHandler extends TextWebSocketHandler {
     private static final Logger logger = LoggerFactory.getLogger(SpriteWebSocketHandler.class);
 
     private final SpriteService spriteService;
+    private final SpriteStatePusher statePusher;
     private final ObjectMapper objectMapper;
     private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
 
-    public SpriteWebSocketHandler(SpriteService spriteService, ObjectMapper objectMapper) {
+    public SpriteWebSocketHandler(SpriteService spriteService, SpriteStatePusher statePusher, ObjectMapper objectMapper) {
         this.spriteService = spriteService;
+        this.statePusher = statePusher;
         this.objectMapper = objectMapper;
     }
 
@@ -71,6 +74,8 @@ public class SpriteWebSocketHandler extends TextWebSocketHandler {
                 case "cycle" -> handleCycle(session);
                 case "state" -> handleState(session);
                 case "feedback" -> handleFeedback(session, request);
+                case "subscribe" -> handleSubscribe(session);
+                case "unsubscribe" -> handleUnsubscribe(session);
                 default -> sendError(session, "Unknown request type: " + request.type());
             }
         } catch (Exception e) {
@@ -82,6 +87,7 @@ public class SpriteWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         sessions.remove(session.getId());
+        statePusher.unsubscribe(session);
         logger.info("WebSocket connection closed: {} - {}", session.getId(), status);
     }
 
@@ -118,6 +124,21 @@ public class SpriteWebSocketHandler extends TextWebSocketHandler {
         )));
     }
 
+    private void handleSubscribe(WebSocketSession session) {
+        statePusher.subscribe(session);
+        sendMessage(session, new WebSocketMessage("subscribed", Map.of(
+                "timestamp", Instant.now().toString(),
+                "subscriberCount", statePusher.getSubscriberCount()
+        )));
+    }
+
+    private void handleUnsubscribe(WebSocketSession session) {
+        statePusher.unsubscribe(session);
+        sendMessage(session, new WebSocketMessage("unsubscribed", Map.of(
+                "timestamp", Instant.now().toString()
+        )));
+    }
+
     private void sendMessage(WebSocketSession session, WebSocketMessage message) {
         try {
             String json = objectMapper.writeValueAsString(message);
@@ -132,6 +153,6 @@ public class SpriteWebSocketHandler extends TextWebSocketHandler {
     }
 
     // WebSocket 消息格式
-    public record WebSocketMessage(String type, Map<String, Object> data) {}
+    public record WebSocketMessage(String type, Object data) {}
     public record WebSocketRequest(String type, Map<String, Object> data) {}
 }

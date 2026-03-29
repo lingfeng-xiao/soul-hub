@@ -272,7 +272,12 @@ public class GitHubBackupService {
         try (CloseableHttpResponse response = httpClient.execute(request)) {
             int statusCode = response.getCode();
             if (statusCode != 200 && statusCode != 201) {
-                String responseBody = EntityUtils.toString(response.getEntity());
+                String responseBody;
+                try {
+                    responseBody = EntityUtils.toString(response.getEntity());
+                } catch (Exception e) {
+                    responseBody = "Unable to read response: " + e.getMessage();
+                }
                 logger.warn("GitHub API returned {} for path {}: {}", statusCode, path, responseBody);
             }
         }

@@ -37,7 +37,7 @@ public class RetrievalCacheService {
     private final Map<String, CacheEntry> cache;
 
     // LRU tracking: order of access (most recent at end)
-    private final LinkedHashSet<String> lruOrder;
+    private final Set<String> lruOrder;
 
     // Configuration
     private int maxSize;
@@ -169,9 +169,6 @@ public class RetrievalCacheService {
             return entry.memories();
 
         } finally {
-            if (lock.isWriteLocked()) {
-                lock.readLock().lock();
-            }
             lock.readLock().unlock();
         }
     }

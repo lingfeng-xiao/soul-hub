@@ -72,7 +72,7 @@ public class MobileApiController {
                 state.lastCycleTime(),
                 state.memoryStatus() != null ? state.memoryStatus().sensoryStimuliCount() : 0,
                 state.memoryStatus() != null ? state.memoryStatus().workingMemoryItems() : 0,
-                state.memoryStatus() != null ? state.memoryStatus().longTermStats().totalMemories() : 0,
+                state.memoryStatus() != null ? (state.memoryStatus().longTermStats().episodicCount + state.memoryStatus().longTermStats().semanticCount + state.memoryStatus().longTermStats().proceduralCount + state.memoryStatus().longTermStats().perceptiveCount) : 0,
                 state.identity().evolutionLevel(),
                 state.hasLlmSupport()
         );

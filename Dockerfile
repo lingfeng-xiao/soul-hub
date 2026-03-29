@@ -21,8 +21,8 @@ RUN mvn dependency:go-offline -B
 # Copy source code
 COPY src ./src
 
-# Build the application (skip tests for production build)
-RUN mvn package -DskipTests
+# Build the application without compiling legacy test sources
+RUN mvn package -Dmaven.test.skip=true
 
 # -----------------------------------------------------------------------------
 # Runtime Stage

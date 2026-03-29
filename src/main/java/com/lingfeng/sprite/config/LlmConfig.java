@@ -1,5 +1,6 @@
 package com.lingfeng.sprite.config;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -13,6 +14,7 @@ import com.lingfeng.sprite.llm.MinMaxLlmReasoner;
 public class LlmConfig {
 
     @Bean
+    @ConditionalOnProperty(name = "sprite.llm.enabled", havingValue = "true")
     public MinMaxConfig minMaxConfig(AppConfig appConfig) {
         return new MinMaxConfig(
                 appConfig.getLlm().getMinmax().getApiKey(),
@@ -22,6 +24,7 @@ public class LlmConfig {
     }
 
     @Bean
+    @ConditionalOnProperty(name = "sprite.llm.enabled", havingValue = "true")
     public MinMaxLlmReasoner minMaxLlmReasoner(MinMaxConfig minMaxConfig) {
         return new MinMaxLlmReasoner(minMaxConfig);
     }

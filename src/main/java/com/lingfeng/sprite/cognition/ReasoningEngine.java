@@ -1,6 +1,8 @@
 package com.lingfeng.sprite.cognition;
 
 import com.lingfeng.sprite.WorldModel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +44,8 @@ import java.util.concurrent.Executors;
  * 3. **预测**：基于历史预测下一步
  */
 public class ReasoningEngine {
+
+    private static final Logger logger = LoggerFactory.getLogger(ReasoningEngine.class);
 
     private final LlmReasoner llmReasoner;
     private final ExecutorService executor;

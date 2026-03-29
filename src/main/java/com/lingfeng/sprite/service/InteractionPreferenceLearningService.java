@@ -58,7 +58,7 @@ public class InteractionPreferenceLearningService {
     private final ZoneId TIMEZONE = ZoneId.of("Asia/Shanghai");
 
     // 缓存的偏好数据
-    private volatile InteractionPreferences cachedPreferences = new InteractionPreferences();
+    private volatile InteractionPreferences cachedPreferences = InteractionPreferences.defaultInstance();
     private volatile Instant lastUpdateTime = Instant.EPOCH;
 
     public InteractionPreferenceLearningService(
@@ -113,6 +113,22 @@ public class InteractionPreferenceLearningService {
             if (bestContactHours == null) bestContactHours = List.of();
             if (bestContactDays == null) bestContactDays = List.of();
             if (triggerResponseRates == null) triggerResponseRates = Map.of();
+        }
+
+        public static InteractionPreferences defaultInstance() {
+            return new InteractionPreferences(
+                Verbosity.MODERATE,
+                "友好",
+                List.of(),
+                List.of(),
+                Map.of(),
+                0,
+                0.5f,
+                0,
+                0f,
+                0f,
+                0f
+            );
         }
     }
 

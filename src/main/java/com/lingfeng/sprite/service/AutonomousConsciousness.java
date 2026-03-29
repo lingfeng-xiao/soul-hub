@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.lingfeng.sprite.SelfModel.Self;
@@ -123,6 +124,7 @@ public class AutonomousConsciousness {
 
     // ==================== 依赖注入 ====================
 
+    @Autowired
     public void setGoalService(AutonomousGoalService goalService) {
         this.goalService = goalService;
     }
@@ -285,7 +287,7 @@ public class AutonomousConsciousness {
      * 基于行为模式动态调整层级
      */
     public AwarenessLevel evaluateAwarenessLevel() {
-        AwarenessLevel newLevel = AwarenessLevel.REACTIVE;
+        final AwarenessLevel newLevel;
 
         float autonomyRatio = state.getAutonomyRatio();
         float reflectionFreq = state.selfReflectionFrequency();
@@ -295,12 +297,15 @@ public class AutonomousConsciousness {
             newLevel = AwarenessLevel.SELF_AWARE;
         } else if (autonomyRatio > 0.3f || reflectionFreq > 0.2f) {
             newLevel = AwarenessLevel.DELIBERATIVE;
+        } else {
+            newLevel = AwarenessLevel.REACTIVE;
         }
 
         // 只有当新层级高于当前时才升级
         if (newLevel.getLevel() > state.level().getLevel()) {
+            final AwarenessLevel levelToSet = newLevel;
             updateState(s -> new ConsciousnessState(
-                newLevel,
+                levelToSet,
                 s.autonomyFactor(),
                 s.selfReflectionFrequency(),
                 s.totalDecisions(),
@@ -357,9 +362,10 @@ public class AutonomousConsciousness {
 
             // 考虑目标相关性
             if (goalService != null) {
+                final String actionToCheck = chosenAction;
                 List<?> activeGoals = goalService.getActiveGoals();
                 if (!activeGoals.isEmpty() && goalService.getActiveGoals().stream()
-                        .anyMatch(g -> g.description().toLowerCase().contains(chosenAction.toLowerCase()))) {
+                        .anyMatch(g -> g.description().toLowerCase().contains(actionToCheck.toLowerCase()))) {
                     reasoning += " (aligns with active goal)";
                 }
             }
