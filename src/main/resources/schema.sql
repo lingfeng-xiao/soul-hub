@@ -29,7 +29,7 @@ create table if not exists life_journal_entries (
     created_at timestamp not null
 );
 
-create index if not exists idx_life_journal_entries_created_at
+create index idx_life_journal_entries_created_at
     on life_journal_entries (created_at desc);
 
 create table if not exists life_command_executions (
@@ -46,7 +46,7 @@ create table if not exists life_command_executions (
     created_at timestamp not null
 );
 
-create index if not exists idx_life_command_executions_created_at
+create index idx_life_command_executions_created_at
     on life_command_executions (created_at desc);
 
 create table if not exists life_runtime_state (
